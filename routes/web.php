@@ -18,6 +18,13 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::resource('polls', App\Http\Controllers\PollController::class);
     Route::middleware('permission:manage_roles')->resource('roles', App\Http\Controllers\RoleController::class);
     
+    // Meetings
+    Route::middleware('permission:create_meetings')->group(function () {
+        Route::get('meetings', [App\Http\Controllers\MeetingController::class, 'adminIndex'])->name('meetings.adminIndex'); // Alias for index in resource if needed, but resource uses index
+        Route::resource('meetings', App\Http\Controllers\MeetingController::class)->except(['index', 'show']);
+        Route::get('meetings', [App\Http\Controllers\MeetingController::class, 'adminIndex'])->name('meetings.index'); // Override resource index
+    });
+
     // Platform Settings
     Route::middleware('permission:manage_platform_settings')->group(function () {
         Route::get('settings', [App\Http\Controllers\SettingsController::class, 'index'])->name('settings.index');
@@ -63,6 +70,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/calendar', [App\Http\Controllers\BusinessEventController::class, 'index'])->name('calendar.index');
     Route::get('/calendar/events', [App\Http\Controllers\BusinessEventController::class, 'getEvents'])->name('calendar.events');
     
+    // Meeting Routes
+    Route::middleware('permission:view_meetings')->get('/meetings', [App\Http\Controllers\MeetingController::class, 'index'])->name('meetings.index');
+
     Route::middleware('admin')->group(function () {
         Route::post('/calendar/events', [App\Http\Controllers\BusinessEventController::class, 'store'])->name('calendar.store');
         Route::put('/calendar/events/{event}', [App\Http\Controllers\BusinessEventController::class, 'update'])->name('calendar.update');

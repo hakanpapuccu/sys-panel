@@ -97,6 +97,22 @@
                     </li>
                     @endif
 
+                    @if(Auth::user()->hasPermission('view_meetings'))
+                    <li><a class="" href="{{route('meetings.index')}}" aria-expanded="false">
+                            <i class="fas fa-video"></i>
+                            <span class="nav-text">Toplantılar</span>
+                        </a>
+                    </li>
+                    @endif
+
+                    @if(Auth::user()->hasPermission('create_meetings'))
+                    <li><a class="" href="{{route('admin.meetings.index')}}" aria-expanded="false">
+                            <i class="fas fa-video"></i>
+                            <span class="nav-text">Toplantı Yönetimi</span>
+                        </a>
+                    </li>
+                    @endif
+
                     @if(Auth::user()->hasPermission('manage_platform_settings'))
                     <li><a class="" href="{{route('admin.settings.index')}}" aria-expanded="false">
                             <i class="fas fa-cogs"></i>

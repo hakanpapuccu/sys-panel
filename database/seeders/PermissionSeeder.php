@@ -60,6 +60,11 @@ class PermissionSeeder extends Seeder
 
             // Platform Settings
             ['name' => 'manage_platform_settings', 'label' => 'Platform Ayarlarını Yönet', 'module' => 'Ayarlar'],
+
+            // Meetings
+            ['name' => 'view_meetings', 'label' => 'Toplantıları Görüntüle', 'module' => 'Toplantılar'],
+            ['name' => 'create_meetings', 'label' => 'Toplantı Oluştur', 'module' => 'Toplantılar'],
+            ['name' => 'delete_meetings', 'label' => 'Toplantı Sil', 'module' => 'Toplantılar'],
         ];
 
         foreach ($permissions as $permission) {
