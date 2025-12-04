@@ -13,44 +13,51 @@ use App\Http\Controllers\FileShareController;
 Route::get('/',  [VacationsController::class, 'show'])->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
-    Route::resource('users', AdminUserController::class);
-    Route::resource('departments', App\Http\Controllers\DepartmentController::class);
+    Route::middleware('permission:view_users')->resource('users', AdminUserController::class);
+    Route::middleware('permission:view_departments')->resource('departments', App\Http\Controllers\DepartmentController::class);
     Route::resource('polls', App\Http\Controllers\PollController::class);
+    Route::middleware('permission:manage_roles')->resource('roles', App\Http\Controllers\RoleController::class);
     
     // Platform Settings
-    Route::get('settings', [App\Http\Controllers\SettingsController::class, 'index'])->name('settings.index');
-    Route::post('settings', [App\Http\Controllers\SettingsController::class, 'update'])->name('settings.update');
+    Route::middleware('permission:manage_platform_settings')->group(function () {
+        Route::get('settings', [App\Http\Controllers\SettingsController::class, 'index'])->name('settings.index');
+        Route::post('settings', [App\Http\Controllers\SettingsController::class, 'update'])->name('settings.update');
+    });
 });
 
 
 Route::middleware('auth')->group(function () {
-    Route::get('/polls', [App\Http\Controllers\PollResponseController::class, 'index'])->name('polls.index');
-    Route::get('/polls/{poll}', [App\Http\Controllers\PollResponseController::class, 'show'])->name('polls.show');
-    Route::post('/polls/{poll}', [App\Http\Controllers\PollResponseController::class, 'store'])->name('polls.store');
+    Route::middleware('permission:view_polls')->get('/polls', [App\Http\Controllers\PollResponseController::class, 'index'])->name('polls.index');
+    Route::middleware('permission:view_polls')->get('/polls/{poll}', [App\Http\Controllers\PollResponseController::class, 'show'])->name('polls.show');
+    Route::middleware('permission:vote_polls')->post('/polls/{poll}', [App\Http\Controllers\PollResponseController::class, 'store'])->name('polls.store');
     
     Route::get('/profile/{user?}', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::post('/profile/upload-image', [ProfileController::class, 'uploadImage'])->name('profile.upload-image');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     
-    Route::resource('announcements', AnnouncementController::class);
+    Route::middleware('permission:view_announcements')->resource('announcements', AnnouncementController::class);
     Route::post('comments', [CommentController::class, 'store'])->name('comments.store');
     
     // Chat Routes
-    Route::get('/chat', [App\Http\Controllers\ChatController::class, 'index'])->name('chat.index');
-    Route::get('/chat/messages/{user}', [App\Http\Controllers\ChatController::class, 'getMessages'])->name('chat.messages');
-    Route::get('/chat/general', [App\Http\Controllers\ChatController::class, 'getGeneralMessages'])->name('chat.general');
-    Route::post('/chat/send', [App\Http\Controllers\ChatController::class, 'sendMessage'])->name('chat.send');
-    Route::get('/chat/conversations', [App\Http\Controllers\ChatController::class, 'getConversations'])->name('chat.conversations');
+    Route::middleware('permission:access_chat')->group(function () {
+        Route::get('/chat', [App\Http\Controllers\ChatController::class, 'index'])->name('chat.index');
+        Route::get('/chat/messages/{user}', [App\Http\Controllers\ChatController::class, 'getMessages'])->name('chat.messages');
+        Route::get('/chat/general', [App\Http\Controllers\ChatController::class, 'getGeneralMessages'])->name('chat.general');
+        Route::post('/chat/send', [App\Http\Controllers\ChatController::class, 'sendMessage'])->name('chat.send');
+        Route::get('/chat/conversations', [App\Http\Controllers\ChatController::class, 'getConversations'])->name('chat.conversations');
+    });
 
     // File Share Routes
-    Route::get('/files', [FileShareController::class, 'index'])->name('files.index');
-    Route::post('/files/folder', [FileShareController::class, 'storeFolder'])->name('files.storeFolder');
-    Route::get('/files/create', [FileShareController::class, 'create'])->name('files.create');
-    Route::post('/files', [FileShareController::class, 'store'])->name('files.store');
-    Route::get('/files/{id}/download', [FileShareController::class, 'download'])->name('files.download');
-    Route::delete('/files/{id}', [FileShareController::class, 'destroy'])->name('files.destroy');
-    Route::post('/files/{id}/move', [FileShareController::class, 'move'])->name('files.move');
+    Route::middleware('permission:view_files')->group(function () {
+        Route::get('/files', [FileShareController::class, 'index'])->name('files.index');
+        Route::post('/files/folder', [FileShareController::class, 'storeFolder'])->name('files.storeFolder');
+        Route::get('/files/create', [FileShareController::class, 'create'])->name('files.create');
+        Route::post('/files', [FileShareController::class, 'store'])->name('files.store');
+        Route::get('/files/{id}/download', [FileShareController::class, 'download'])->name('files.download');
+        Route::delete('/files/{id}', [FileShareController::class, 'destroy'])->name('files.destroy');
+        Route::post('/files/{id}/move', [FileShareController::class, 'move'])->name('files.move');
+    });
 
     // Business Calendar Routes
     Route::get('/calendar', [App\Http\Controllers\BusinessEventController::class, 'index'])->name('calendar.index');

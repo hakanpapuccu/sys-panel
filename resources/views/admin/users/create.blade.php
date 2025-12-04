@@ -66,11 +66,25 @@
                                 </div>
 
                                 <div class="col-lg-12 mb-3">
-                                    <div class="form-check">
+                                    <div class="form-check mb-3">
                                         <input class="form-check-input" type="checkbox" name="is_admin" id="is_admin">
                                         <label class="form-check-label" for="is_admin">
-                                            Admin Yetkisi Ver
+                                            Süper Admin Yetkisi Ver (Tüm yetkilere sahip olur)
                                         </label>
+                                    </div>
+
+                                    <label class="form-label">Roller</label>
+                                    <div class="row">
+                                        @foreach($roles as $role)
+                                            <div class="col-md-3">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" name="roles[]" value="{{ $role->id }}" id="role_{{ $role->id }}">
+                                                    <label class="form-check-label" for="role_{{ $role->id }}">
+                                                        {{ $role->label }}
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        @endforeach
                                     </div>
                                 </div>
 

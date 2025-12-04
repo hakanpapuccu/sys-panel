@@ -22,10 +22,14 @@ class AdminUserController extends Controller
     /**
      * Show the form for creating a new resource.
      */
+    /**
+     * Show the form for creating a new resource.
+     */
     public function create()
     {
         $departments = Department::all();
-        return view('admin.users.create', compact('departments'));
+        $roles = \App\Models\Role::all();
+        return view('admin.users.create', compact('departments', 'roles'));
     }
 
     /**
@@ -38,15 +42,20 @@ class AdminUserController extends Controller
             'email' => ['required', 'string', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'department_id' => ['nullable', 'exists:departments,id'],
+            'roles' => ['array'],
         ]);
 
-        User::create([
+        $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'is_admin' => $request->has('is_admin'),
             'department_id' => $request->department_id,
         ]);
+
+        if ($request->has('roles')) {
+            $user->roles()->sync($request->roles);
+        }
 
         return redirect()->route('admin.users.index')->with('success', 'User created successfully.');
     }
@@ -57,7 +66,8 @@ class AdminUserController extends Controller
     public function edit(User $user)
     {
         $departments = Department::all();
-        return view('admin.users.edit', compact('user', 'departments'));
+        $roles = \App\Models\Role::all();
+        return view('admin.users.edit', compact('user', 'departments', 'roles'));
     }
 
     /**
@@ -72,6 +82,7 @@ class AdminUserController extends Controller
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,'.$user->id],
             'is_admin' => ['boolean'],
             'department_id' => ['nullable', 'exists:departments,id'],
+            'roles' => ['array'],
         ]);
 
         $user->name = $request->name;
@@ -88,6 +99,12 @@ class AdminUserController extends Controller
 
         \Illuminate\Support\Facades\Log::info('User before save:', $user->toArray());
         $user->save();
+
+        if ($request->has('roles')) {
+            $user->roles()->sync($request->roles);
+        } else {
+            $user->roles()->detach();
+        }
 
         return redirect()->route('admin.users.index')->with('success', 'User updated successfully.');
     }
