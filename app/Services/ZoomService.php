@@ -14,9 +14,9 @@ class ZoomService
 
     public function __construct()
     {
-        $this->accountId = env('ZOOM_ACCOUNT_ID');
-        $this->clientId = env('ZOOM_CLIENT_ID');
-        $this->clientSecret = env('ZOOM_CLIENT_SECRET');
+        $this->accountId = \App\Models\Setting::get('zoom_account_id', env('ZOOM_ACCOUNT_ID'));
+        $this->clientId = \App\Models\Setting::get('zoom_client_id', env('ZOOM_CLIENT_ID'));
+        $this->clientSecret = \App\Models\Setting::get('zoom_client_secret', env('ZOOM_CLIENT_SECRET'));
     }
 
     protected function getAccessToken()

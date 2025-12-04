@@ -52,6 +52,24 @@
                                 @endif
                             </div>
 
+                            <hr>
+                            <h4 class="card-title mb-3">Zoom API Ayarları</h4>
+
+                            <div class="mb-3">
+                                <label class="form-label">Zoom Account ID</label>
+                                <input type="text" class="form-control" name="zoom_account_id" value="{{ \App\Models\Setting::get('zoom_account_id', env('ZOOM_ACCOUNT_ID')) }}">
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Zoom Client ID</label>
+                                <input type="text" class="form-control" name="zoom_client_id" value="{{ \App\Models\Setting::get('zoom_client_id', env('ZOOM_CLIENT_ID')) }}">
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Zoom Client Secret</label>
+                                <input type="text" class="form-control" name="zoom_client_secret" value="{{ \App\Models\Setting::get('zoom_client_secret', env('ZOOM_CLIENT_SECRET')) }}">
+                            </div>
+
                             <button type="submit" class="btn btn-primary">Kaydet</button>
                         </form>
                     </div>

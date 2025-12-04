@@ -19,6 +19,9 @@ class SettingsController extends Controller
             'site_title' => 'nullable|string|max:255',
             'site_logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'site_favicon' => 'nullable|image|mimes:ico,png|max:1024',
+            'zoom_account_id' => 'nullable|string|max:255',
+            'zoom_client_id' => 'nullable|string|max:255',
+            'zoom_client_secret' => 'nullable|string|max:255',
         ]);
 
         if ($request->has('site_title')) {
@@ -33,6 +36,18 @@ class SettingsController extends Controller
         if ($request->hasFile('site_favicon')) {
             $path = $request->file('site_favicon')->store('public/settings');
             Setting::set('site_favicon', str_replace('public/', '', $path));
+        }
+
+        if ($request->has('zoom_account_id')) {
+            Setting::set('zoom_account_id', $request->zoom_account_id);
+        }
+
+        if ($request->has('zoom_client_id')) {
+            Setting::set('zoom_client_id', $request->zoom_client_id);
+        }
+
+        if ($request->has('zoom_client_secret')) {
+            Setting::set('zoom_client_secret', $request->zoom_client_secret);
         }
 
         return redirect()->back()->with('success', 'Ayarlar güncellendi.');
