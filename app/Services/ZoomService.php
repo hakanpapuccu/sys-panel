@@ -38,6 +38,7 @@ class ZoomService
             return $data['access_token'];
         }
 
+        \Illuminate\Support\Facades\Log::error('Zoom Access Token Error: ' . $response->body());
         return null;
     }
 
@@ -69,6 +70,7 @@ class ZoomService
             return $response->json();
         }
 
+        \Illuminate\Support\Facades\Log::error('Zoom Create Meeting Error: ' . $response->body());
         return null;
     }
 }
