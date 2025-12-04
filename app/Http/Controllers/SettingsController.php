@@ -22,6 +22,10 @@ class SettingsController extends Controller
             'zoom_account_id' => 'nullable|string|max:255',
             'zoom_client_id' => 'nullable|string|max:255',
             'zoom_client_secret' => 'nullable|string|max:255',
+            'teams_tenant_id' => 'nullable|string|max:255',
+            'teams_client_id' => 'nullable|string|max:255',
+            'teams_client_secret' => 'nullable|string|max:255',
+            'teams_user_id' => 'nullable|string|max:255',
         ]);
 
         if ($request->has('site_title')) {
@@ -48,6 +52,22 @@ class SettingsController extends Controller
 
         if ($request->has('zoom_client_secret')) {
             Setting::set('zoom_client_secret', $request->zoom_client_secret);
+        }
+
+        if ($request->has('teams_tenant_id')) {
+            Setting::set('teams_tenant_id', $request->teams_tenant_id);
+        }
+
+        if ($request->has('teams_client_id')) {
+            Setting::set('teams_client_id', $request->teams_client_id);
+        }
+
+        if ($request->has('teams_client_secret')) {
+            Setting::set('teams_client_secret', $request->teams_client_secret);
+        }
+
+        if ($request->has('teams_user_id')) {
+            Setting::set('teams_user_id', $request->teams_user_id);
         }
 
         return redirect()->back()->with('success', 'Ayarlar güncellendi.');

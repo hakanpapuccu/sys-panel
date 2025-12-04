@@ -23,9 +23,30 @@
                             @csrf
 
                             <div class="row">
+                                <!-- Platform -->
+                                <div class="col-lg-12 mb-4">
+                                    <label class="form-label mb-3">Platform Seçin</label>
+                                    <div class="row">
+                                        <div class="col-md-3 col-6">
+                                            <input type="radio" class="btn-check" name="platform" id="platform_zoom" value="zoom" checked autocomplete="off">
+                                            <label class="btn btn-outline-primary d-flex flex-column align-items-center justify-content-center p-4 w-100 h-100" for="platform_zoom">
+                                                <img src="{{ asset('assets/images/platforms/zoom.png') }}" alt="Zoom" width="64" height="64">
+                                                <span class="mt-2 fw-bold">Zoom</span>
+                                            </label>
+                                        </div>
+                                        <div class="col-md-3 col-6">
+                                            <input type="radio" class="btn-check" name="platform" id="platform_teams" value="teams" autocomplete="off">
+                                            <label class="btn btn-outline-primary d-flex flex-column align-items-center justify-content-center p-4 w-100 h-100" for="platform_teams">
+                                                <img src="{{ asset('assets/images/platforms/teams.png') }}" alt="Microsoft Teams" width="64" height="64">
+                                                <span class="mt-2 fw-bold">Teams</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <!-- Topic -->
                                 <div class="col-lg-12 mb-3">
-                                    <label class="form-label">Toplantı Konusu</label>
+                                    <label class="form-label">Konu</label>
                                     <input type="text" class="form-control @error('topic') is-invalid @enderror" name="topic" value="{{ old('topic') }}" required autofocus placeholder="Örnek: Haftalık Değerlendirme Toplantısı">
                                     @error('topic')
                                         <div class="invalid-feedback">{{ $message }}</div>

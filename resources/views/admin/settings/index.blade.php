@@ -70,6 +70,30 @@
                                 <input type="text" class="form-control" name="zoom_client_secret" value="{{ \App\Models\Setting::get('zoom_client_secret', env('ZOOM_CLIENT_SECRET')) }}">
                             </div>
 
+                            <hr>
+                            <h4 class="card-title mb-3">Microsoft Teams Ayarları</h4>
+
+                            <div class="mb-3">
+                                <label class="form-label">Tenant ID</label>
+                                <input type="text" class="form-control" name="teams_tenant_id" value="{{ \App\Models\Setting::get('teams_tenant_id', env('TEAMS_TENANT_ID')) }}">
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Client ID</label>
+                                <input type="text" class="form-control" name="teams_client_id" value="{{ \App\Models\Setting::get('teams_client_id', env('TEAMS_CLIENT_ID')) }}">
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Client Secret</label>
+                                <input type="text" class="form-control" name="teams_client_secret" value="{{ \App\Models\Setting::get('teams_client_secret', env('TEAMS_CLIENT_SECRET')) }}">
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">User ID (Toplantı Sahibi)</label>
+                                <input type="text" class="form-control" name="teams_user_id" value="{{ \App\Models\Setting::get('teams_user_id', env('TEAMS_USER_ID')) }}">
+                                <small class="text-muted">Teams toplantılarını oluşturacak kullanıcının ID'si.</small>
+                            </div>
+
                             <button type="submit" class="btn btn-primary">Kaydet</button>
                         </form>
                     </div>

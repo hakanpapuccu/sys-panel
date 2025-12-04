@@ -10,10 +10,12 @@ use Carbon\Carbon;
 class MeetingController extends Controller
 {
     protected $zoomService;
+    protected $teamsService;
 
-    public function __construct(ZoomService $zoomService)
+    public function __construct(ZoomService $zoomService, \App\Services\TeamsService $teamsService)
     {
         $this->zoomService = $zoomService;
+        $this->teamsService = $teamsService;
     }
 
     public function index()
@@ -42,37 +44,46 @@ class MeetingController extends Controller
             'start_time' => 'required|date|after:now',
             'duration' => 'required|integer|min:1',
             'agenda' => 'nullable|string',
+            'platform' => 'required|in:zoom,teams',
         ]);
 
         $startTime = Carbon::parse($request->start_time);
         
-        $zoomData = [
+        $meetingData = [
             'topic' => $request->topic,
             'start_time' => $startTime->toIso8601String(),
+            'end_time' => $startTime->copy()->addMinutes($request->duration)->toIso8601String(),
             'duration' => $request->duration,
             'agenda' => $request->agenda,
         ];
 
-        $zoomMeeting = $this->zoomService->createMeeting($zoomData);
+        $platform = $request->platform;
+        $meetingResult = null;
 
-        if ($zoomMeeting) {
+        if ($platform === 'zoom') {
+            $meetingResult = $this->zoomService->createMeeting($meetingData);
+        } elseif ($platform === 'teams') {
+            $meetingResult = $this->teamsService->createMeeting($meetingData);
+        }
+
+        if ($meetingResult) {
             Meeting::create([
+                'platform' => $platform,
                 'topic' => $request->topic,
                 'start_time' => $startTime,
                 'duration' => $request->duration,
                 'agenda' => $request->agenda,
-                'join_url' => $zoomMeeting['join_url'],
-                'start_url' => $zoomMeeting['start_url'],
-                'meeting_id' => $zoomMeeting['id'],
-                'password' => $zoomMeeting['password'] ?? null,
+                'join_url' => $platform === 'teams' ? ($meetingResult['joinWebUrl'] ?? null) : ($meetingResult['join_url'] ?? null),
+                'join_web_url' => $platform === 'teams' ? ($meetingResult['joinWebUrl'] ?? null) : null,
+                'start_url' => $platform === 'teams' ? null : ($meetingResult['start_url'] ?? null),
+                'meeting_id' => $meetingResult['id'],
+                'password' => $platform === 'zoom' ? ($meetingResult['password'] ?? null) : null,
             ]);
 
             return redirect()->route('admin.meetings.index')->with('success', 'Toplantı başarıyla oluşturuldu.');
         }
 
-        // Fallback if Zoom fails (optional: create local only or show error)
-        // For now, we'll show an error.
-        return back()->with('error', 'Zoom toplantısı oluşturulamadı. Lütfen API ayarlarını kontrol edin.');
+        return back()->with('error', ucfirst($platform) . ' toplantısı oluşturulamadı. Lütfen API ayarlarını kontrol edin.');
     }
 
     public function destroy(Meeting $meeting)
