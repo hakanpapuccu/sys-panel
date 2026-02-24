@@ -3,9 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Poll;
-use App\Models\PollResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class PollResponseController extends Controller
 {
@@ -28,6 +28,10 @@ class PollResponseController extends Controller
 
     public function show(Poll $poll)
     {
+        if (! $this->isPollOpen($poll)) {
+            return redirect()->route('polls.index')->with('error', 'Bu anket şu anda aktif değil.');
+        }
+
         // Check if user already responded
         if ($poll->responses()->where('user_id', auth()->id())->exists()) {
             return redirect()->route('polls.index')->with('error', 'Bu ankete zaten katıldınız.');
@@ -39,6 +43,10 @@ class PollResponseController extends Controller
 
     public function store(Request $request, Poll $poll)
     {
+        if (! $this->isPollOpen($poll)) {
+            return redirect()->route('polls.index')->with('error', 'Bu anket şu anda aktif değil.');
+        }
+
         // Check if user already responded
         if ($poll->responses()->where('user_id', auth()->id())->exists()) {
             return redirect()->route('polls.index')->with('error', 'Bu ankete zaten katıldınız.');
@@ -48,8 +56,22 @@ class PollResponseController extends Controller
         foreach ($poll->questions as $question) {
             if ($question->type == 'checkbox') {
                 $rules["q_{$question->id}"] = 'nullable|array';
+                $rules["q_{$question->id}.*"] = [
+                    'integer',
+                    Rule::exists('poll_options', 'id')->where(function ($query) use ($question) {
+                        $query->where('poll_question_id', $question->id);
+                    }),
+                ];
+            } elseif ($question->type == 'radio') {
+                $rules["q_{$question->id}"] = [
+                    'required',
+                    'integer',
+                    Rule::exists('poll_options', 'id')->where(function ($query) use ($question) {
+                        $query->where('poll_question_id', $question->id);
+                    }),
+                ];
             } else {
-                $rules["q_{$question->id}"] = 'required';
+                $rules["q_{$question->id}"] = 'required|string|max:1000';
             }
         }
         $request->validate($rules);
@@ -85,5 +107,22 @@ class PollResponseController extends Controller
         });
 
         return redirect()->route('polls.index')->with('success', 'Anket yanıtınız kaydedildi. Teşekkürler!');
+    }
+
+    private function isPollOpen(Poll $poll): bool
+    {
+        if (! $poll->is_active) {
+            return false;
+        }
+
+        if ($poll->start_date && $poll->start_date->isFuture()) {
+            return false;
+        }
+
+        if ($poll->end_date && $poll->end_date->isPast()) {
+            return false;
+        }
+
+        return true;
     }
 }

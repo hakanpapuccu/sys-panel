@@ -55,7 +55,7 @@
                                             <textarea name="description" id="ckeditor" class="form-control" rows="4">{{ $task->description }}</textarea>
                                         @else
                                             <div class="card-body border rounded" style="background-color: #f8f9fa; min-height: 100px;">
-                                                {!! $task->description !!}
+                                                {!! nl2br(e($task->description ?? '')) !!}
                                             </div>
                                         @endif
                                     </div>

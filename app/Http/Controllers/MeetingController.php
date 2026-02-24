@@ -67,16 +67,23 @@ class MeetingController extends Controller
         }
 
         if ($meetingResult) {
+            $joinUrl = $platform === 'teams'
+                ? ($meetingResult['joinWebUrl'] ?? null)
+                : ($meetingResult['join_url'] ?? null);
+            $startUrl = $platform === 'teams'
+                ? null
+                : ($meetingResult['start_url'] ?? null);
+
             Meeting::create([
                 'platform' => $platform,
                 'topic' => $request->topic,
                 'start_time' => $startTime,
                 'duration' => $request->duration,
                 'agenda' => $request->agenda,
-                'join_url' => $platform === 'teams' ? ($meetingResult['joinWebUrl'] ?? null) : ($meetingResult['join_url'] ?? null),
-                'join_web_url' => $platform === 'teams' ? ($meetingResult['joinWebUrl'] ?? null) : null,
-                'start_url' => $platform === 'teams' ? null : ($meetingResult['start_url'] ?? null),
-                'meeting_id' => $meetingResult['id'],
+                'join_url' => $this->sanitizeExternalUrl($joinUrl),
+                'join_web_url' => $platform === 'teams' ? $this->sanitizeExternalUrl($joinUrl) : null,
+                'start_url' => $this->sanitizeExternalUrl($startUrl),
+                'meeting_id' => isset($meetingResult['id']) ? (string) $meetingResult['id'] : null,
                 'password' => $platform === 'zoom' ? ($meetingResult['password'] ?? null) : null,
             ]);
 
@@ -91,5 +98,24 @@ class MeetingController extends Controller
         // Optionally delete from Zoom as well
         $meeting->delete();
         return redirect()->route('admin.meetings.index')->with('success', 'Toplantı silindi.');
+    }
+
+    private function sanitizeExternalUrl(?string $url): ?string
+    {
+        if (! $url) {
+            return null;
+        }
+
+        $url = trim($url);
+        if (! filter_var($url, FILTER_VALIDATE_URL)) {
+            return null;
+        }
+
+        $scheme = strtolower((string) parse_url($url, PHP_URL_SCHEME));
+        if (! in_array($scheme, ['http', 'https'], true)) {
+            return null;
+        }
+
+        return $url;
     }
 }

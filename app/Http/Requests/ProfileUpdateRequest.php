@@ -8,6 +8,11 @@ use Illuminate\Validation\Rule;
 
 class ProfileUpdateRequest extends FormRequest
 {
+    public function authorize(): bool
+    {
+        return $this->user() !== null;
+    }
+
     /**
      * Get the validation rules that apply to the request.
      *
@@ -15,8 +20,8 @@ class ProfileUpdateRequest extends FormRequest
      */
     public function rules(): array
     {
-        // Get the user being edited (for admin editing other users)
-        $userId = $this->input('user_id') ?: $this->user()->id;
+        $editingOtherUser = $this->user()->is_admin && $this->filled('user_id');
+        $userId = $editingOtherUser ? (int) $this->input('user_id') : $this->user()->id;
 
         return [
             'name' => ['string', 'max:255'],
@@ -28,7 +33,7 @@ class ProfileUpdateRequest extends FormRequest
             'profile_image' => ['nullable', 'image', 'max:2048'],
             'banner_image' => ['nullable', 'image', 'max:2048'],
             'is_admin' => ['nullable', 'boolean'],
-            'user_id' => ['nullable', 'integer', 'exists:users,id'],
+            'user_id' => ['nullable', 'integer', 'exists:users,id', Rule::prohibitedIf(! $this->user()->is_admin)],
         ];
     }
 }

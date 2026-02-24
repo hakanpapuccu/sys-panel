@@ -9,7 +9,7 @@ class NotificationController extends Controller
 {
     public function markAllAsRead()
     {
-        Auth::user()->unreadNotifications->markAsRead();
+        Auth::user()?->unreadNotifications()->update(['read_at' => now()]);
         return back();
     }
 }

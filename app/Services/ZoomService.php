@@ -4,6 +4,8 @@ namespace App\Services;
 
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
+use App\Models\Setting;
+use Throwable;
 
 class ZoomService
 {
@@ -14,22 +16,26 @@ class ZoomService
 
     public function __construct()
     {
-        $this->accountId = \App\Models\Setting::get('zoom_account_id', env('ZOOM_ACCOUNT_ID'));
-        $this->clientId = \App\Models\Setting::get('zoom_client_id', env('ZOOM_CLIENT_ID'));
-        $this->clientSecret = \App\Models\Setting::get('zoom_client_secret', env('ZOOM_CLIENT_SECRET'));
+        $this->accountId = env('ZOOM_ACCOUNT_ID');
+        $this->clientId = env('ZOOM_CLIENT_ID');
+        $this->clientSecret = env('ZOOM_CLIENT_SECRET');
     }
 
     protected function getAccessToken()
     {
+        $accountId = $this->getConfig('zoom_account_id', $this->accountId);
+        $clientId = $this->getConfig('zoom_client_id', $this->clientId);
+        $clientSecret = $this->getConfig('zoom_client_secret', $this->clientSecret);
+
         if (Cache::has('zoom_access_token')) {
             return Cache::get('zoom_access_token');
         }
 
         $response = Http::asForm()
-            ->withBasicAuth($this->clientId, $this->clientSecret)
+            ->withBasicAuth($clientId, $clientSecret)
             ->post('https://zoom.us/oauth/token', [
                 'grant_type' => 'account_credentials',
-                'account_id' => $this->accountId,
+                'account_id' => $accountId,
             ]);
 
         if ($response->successful()) {
@@ -38,7 +44,10 @@ class ZoomService
             return $data['access_token'];
         }
 
-        \Illuminate\Support\Facades\Log::error('Zoom Access Token Error: ' . $response->body());
+        \Illuminate\Support\Facades\Log::error('Zoom Access Token Error', [
+            'status' => $response->status(),
+            'error' => $response->json('reason'),
+        ]);
         return null;
     }
 
@@ -70,7 +79,20 @@ class ZoomService
             return $response->json();
         }
 
-        \Illuminate\Support\Facades\Log::error('Zoom Create Meeting Error: ' . $response->body());
+        \Illuminate\Support\Facades\Log::error('Zoom Create Meeting Error', [
+            'status' => $response->status(),
+            'code' => $response->json('code'),
+            'message' => $response->json('message'),
+        ]);
         return null;
+    }
+
+    private function getConfig(string $key, ?string $default = null): ?string
+    {
+        try {
+            return Setting::get($key, $default);
+        } catch (Throwable $e) {
+            return $default;
+        }
     }
 }

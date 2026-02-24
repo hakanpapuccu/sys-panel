@@ -34,7 +34,8 @@ class RoleController extends Controller
         $request->validate([
             'name' => 'required|unique:roles,name',
             'label' => 'required',
-            'permissions' => 'array'
+            'permissions' => 'array',
+            'permissions.*' => 'integer|exists:permissions,id',
         ]);
 
         $role = Role::create([
@@ -74,7 +75,8 @@ class RoleController extends Controller
         $request->validate([
             'name' => 'required|unique:roles,name,' . $role->id,
             'label' => 'required',
-            'permissions' => 'array'
+            'permissions' => 'array',
+            'permissions.*' => 'integer|exists:permissions,id',
         ]);
 
         $role->update([

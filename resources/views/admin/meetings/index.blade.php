@@ -62,7 +62,7 @@
                                             <td>
                                                 <div class="d-flex">
                                                     @if($meeting->start_url)
-                                                        <a href="{{ $meeting->start_url }}" target="_blank" class="btn btn-success shadow btn-xs sharp me-1" title="Toplantıyı Başlat">
+                                                        <a href="{{ $meeting->start_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-success shadow btn-xs sharp me-1" title="Toplantıyı Başlat">
                                                             <i class="fas fa-video"></i>
                                                         </a>
                                                     @endif

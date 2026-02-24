@@ -114,38 +114,44 @@ class VacationsController extends Controller
  
     }
 
-    public function verify ($id) {
-
-        $vacation=Vacation::findOrFail($id);
+    public function verify(Vacation $vacation)
+    {
         $this->authorize('approve', $vacation);
-        
-        $vacation->is_verified=Vacation::STATUS_APPROVED;
-        $vacation->vacation_verifier_id=Auth::id();
+
+        if ((int) $vacation->is_verified !== Vacation::STATUS_PENDING) {
+            session()->flash('error', 'Bu izin talebi zaten işlenmiş.');
+            return redirect()->route('dashboard');
+        }
+
+        $vacation->is_verified = Vacation::STATUS_APPROVED;
+        $vacation->vacation_verifier_id = Auth::id();
         $vacation->save();
 
         // Notify User
         $vacation->user->notify(new VacationStatusUpdated($vacation, 'approved'));
 
-        session()->flash('success', 'İzin onaylandı');
+        session()->flash('success', 'İzin onaylandı.');
         return redirect()->route('dashboard');
-
     }
 
-    public function reject ($id) {
-
-        $vacation=Vacation::findOrFail($id);
+    public function reject(Vacation $vacation)
+    {
         $this->authorize('approve', $vacation);
 
-        $vacation->is_verified=Vacation::STATUS_REJECTED;
-        $vacation->vacation_verifier_id=Auth::id();
+        if ((int) $vacation->is_verified !== Vacation::STATUS_PENDING) {
+            session()->flash('error', 'Bu izin talebi zaten işlenmiş.');
+            return redirect()->route('dashboard');
+        }
+
+        $vacation->is_verified = Vacation::STATUS_REJECTED;
+        $vacation->vacation_verifier_id = Auth::id();
         $vacation->save();
         
         // Notify User
         $vacation->user->notify(new VacationStatusUpdated($vacation, 'rejected'));
 
-        session()->flash('success', 'İzin reddedildi');
+        session()->flash('success', 'İzin reddedildi.');
         return redirect()->route('dashboard');
-
     }
 
     

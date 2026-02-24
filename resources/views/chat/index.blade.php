@@ -316,7 +316,7 @@ function displayGeneralMessages(messages, silent) {
         
         messageDiv.innerHTML = `
             <div class="message-bubble ${isSender ? 'bg-success text-white' : 'bg-white'}" style="max-width: 70%; padding: 10px 15px; border-radius: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                ${!isSender ? `<strong>${senderName}</strong><br>` : ''}
+                ${!isSender ? `<strong>${escapeHtml(senderName)}</strong><br>` : ''}
                 <p class="mb-0">${escapeHtml(message.message)}</p>
                 <small class="${isSender ? 'text-white-50' : 'text-muted'}"  style="font-size: 0.75rem;">
                     ${formatTime(message.created_at)}

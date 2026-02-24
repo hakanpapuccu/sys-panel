@@ -16,12 +16,19 @@ class AnnouncementController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'content' => 'required|string|max:1000',
+            'content' => 'required|string|max:5000',
         ]);
+
+        $content = $this->sanitizeContent($request->input('content'));
+        if ($content === '' || mb_strlen($content) > 1000) {
+            return back()
+                ->withErrors(['content' => 'Duyuru metni 1-1000 karakter arasında olmalıdır.'])
+                ->withInput();
+        }
 
         Announcement::create([
             'user_id' => auth()->id(),
-            'content' => $request->content,
+            'content' => $content,
         ]);
 
         return back()->with('success', 'Duyuru paylaşıldı.');
@@ -42,11 +49,18 @@ class AnnouncementController extends Controller
         }
 
         $request->validate([
-            'content' => 'required|string|max:1000',
+            'content' => 'required|string|max:5000',
         ]);
 
+        $content = $this->sanitizeContent($request->input('content'));
+        if ($content === '' || mb_strlen($content) > 1000) {
+            return back()
+                ->withErrors(['content' => 'Duyuru metni 1-1000 karakter arasında olmalıdır.'])
+                ->withInput();
+        }
+
         $announcement->update([
-            'content' => $request->content,
+            'content' => $content,
         ]);
 
         return redirect()->route('announcements.index')->with('success', 'Duyuru güncellendi.');
@@ -61,5 +75,10 @@ class AnnouncementController extends Controller
         $announcement->delete();
 
         return back()->with('success', 'Duyuru silindi.');
+    }
+
+    private function sanitizeContent(string $content): string
+    {
+        return trim(strip_tags($content));
     }
 }

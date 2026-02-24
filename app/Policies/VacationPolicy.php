@@ -50,7 +50,7 @@ class VacationPolicy
     /**
      * Determine whether the user can approve/reject the vacation.
      */
-    public function approve(User $user): bool
+    public function approve(User $user, ?Vacation $vacation = null): bool
     {
         return $user->is_admin;
     }

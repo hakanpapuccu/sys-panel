@@ -44,7 +44,7 @@
                             @endif
                         </div>
                         <div class="card-footer border-0 pt-0 pb-4">
-                            <a href="{{ $meeting->join_url }}" target="_blank" class="btn btn-primary w-100 btn-rounded">
+                            <a href="{{ $meeting->join_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-primary w-100 btn-rounded">
                                 <i class="fas fa-video me-2"></i> Toplantıya Katıl
                             </a>
                         </div>

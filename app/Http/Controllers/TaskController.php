@@ -43,6 +43,7 @@ class TaskController extends Controller
             'assigned_to_id' => 'required|exists:users,id',
         ]);
 
+        $validated['description'] = $this->sanitizeDescription($validated['description'] ?? null);
         $validated['created_by_id'] = Auth::id();
         $validated['status'] = 'pending';
 
@@ -87,6 +88,7 @@ class TaskController extends Controller
                 'status' => 'required|in:pending,in_progress,completed',
                 'assigned_to_id' => 'required|exists:users,id',
             ]);
+            $validated['description'] = $this->sanitizeDescription($validated['description'] ?? null);
             $task->update($validated);
         }
 
@@ -100,5 +102,16 @@ class TaskController extends Controller
         $task->delete();
         session()->flash('success', 'Görev silindi');
         return redirect()->route('tasks.index');
+    }
+
+    private function sanitizeDescription(?string $description): ?string
+    {
+        if ($description === null) {
+            return null;
+        }
+
+        $description = trim(strip_tags($description));
+
+        return $description === '' ? null : $description;
     }
 }

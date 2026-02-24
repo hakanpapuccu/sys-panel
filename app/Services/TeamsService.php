@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use App\Models\Setting;
+use Throwable;
 
 class TeamsService
 {
@@ -17,21 +18,25 @@ class TeamsService
 
     public function __construct()
     {
-        $this->tenantId = Setting::get('teams_tenant_id', env('TEAMS_TENANT_ID'));
-        $this->clientId = Setting::get('teams_client_id', env('TEAMS_CLIENT_ID'));
-        $this->clientSecret = Setting::get('teams_client_secret', env('TEAMS_CLIENT_SECRET'));
-        $this->userId = Setting::get('teams_user_id', env('TEAMS_USER_ID'));
+        $this->tenantId = env('TEAMS_TENANT_ID');
+        $this->clientId = env('TEAMS_CLIENT_ID');
+        $this->clientSecret = env('TEAMS_CLIENT_SECRET');
+        $this->userId = env('TEAMS_USER_ID');
     }
 
     protected function getAccessToken()
     {
+        $tenantId = $this->getConfig('teams_tenant_id', $this->tenantId);
+        $clientId = $this->getConfig('teams_client_id', $this->clientId);
+        $clientSecret = $this->getConfig('teams_client_secret', $this->clientSecret);
+
         if (Cache::has('teams_access_token')) {
             return Cache::get('teams_access_token');
         }
 
-        $response = Http::asForm()->post("https://login.microsoftonline.com/{$this->tenantId}/oauth2/v2.0/token", [
-            'client_id' => $this->clientId,
-            'client_secret' => $this->clientSecret,
+        $response = Http::asForm()->post("https://login.microsoftonline.com/{$tenantId}/oauth2/v2.0/token", [
+            'client_id' => $clientId,
+            'client_secret' => $clientSecret,
             'scope' => 'https://graph.microsoft.com/.default',
             'grant_type' => 'client_credentials',
         ]);
@@ -42,25 +47,30 @@ class TeamsService
             return $data['access_token'];
         }
 
-        Log::error('Teams Access Token Error: ' . $response->body());
+        Log::error('Teams Access Token Error', [
+            'status' => $response->status(),
+            'error' => $response->json('error'),
+            'error_description' => $response->json('error_description'),
+        ]);
         return null;
     }
 
     public function createMeeting($data)
     {
         $token = $this->getAccessToken();
+        $userId = $this->getConfig('teams_user_id', $this->userId);
 
         if (! $token) {
             return null;
         }
 
-        if (! $this->userId) {
+        if (! $userId) {
             Log::error('Teams User ID not configured');
             return null;
         }
 
         $response = Http::withToken($token)
-            ->post("{$this->baseUrl}/users/{$this->userId}/onlineMeetings", [
+            ->post("{$this->baseUrl}/users/{$userId}/onlineMeetings", [
                 'startDateTime' => $data['start_time'], // ISO 8601
                 'endDateTime' => $data['end_time'],   // ISO 8601
                 'subject' => $data['topic'],
@@ -73,7 +83,20 @@ class TeamsService
             return $response->json();
         }
 
-        Log::error('Teams Create Meeting Error: ' . $response->body());
+        Log::error('Teams Create Meeting Error', [
+            'status' => $response->status(),
+            'error' => $response->json('error'),
+            'message' => $response->json('error.message'),
+        ]);
         return null;
+    }
+
+    private function getConfig(string $key, ?string $default = null): ?string
+    {
+        try {
+            return Setting::get($key, $default);
+        } catch (Throwable $e) {
+            return $default;
+        }
     }
 }

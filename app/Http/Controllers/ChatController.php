@@ -6,6 +6,7 @@ use App\Models\Message;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 
 class ChatController extends Controller
 {
@@ -50,17 +51,23 @@ class ChatController extends Controller
      */
     public function sendMessage(Request $request)
     {
+        $isGeneral = $request->boolean('is_general');
+
         $request->validate([
-            'receiver_id' => 'nullable|exists:users,id',
+            'receiver_id' => [
+                Rule::requiredIf(! $isGeneral),
+                'nullable',
+                'integer',
+                'exists:users,id',
+                Rule::notIn([Auth::id()]),
+            ],
             'message' => 'required|string|max:5000',
             'is_general' => 'nullable|boolean',
         ]);
 
-        $isGeneral = $request->boolean('is_general');
-
         $message = Message::create([
             'sender_id' => Auth::id(),
-            'receiver_id' => $isGeneral ? null : $request->receiver_id,
+            'receiver_id' => $isGeneral ? null : (int) $request->receiver_id,
             'message' => $request->message,
             'is_general' => $isGeneral,
         ]);

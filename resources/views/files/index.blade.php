@@ -20,6 +20,7 @@
                 <div class="card">
                     <div class="card-header">
                         <h4 class="card-title">Dosyalar</h4>
+                        @if(Auth::user()->hasPermission('upload_files'))
                         <div>
                             <button type="button" class="btn btn-secondary me-2" data-bs-toggle="modal" data-bs-target="#createFolderModal">
                                 <i class="fa fa-folder-plus me-1"></i> Yeni Klasör
@@ -28,6 +29,7 @@
                                 <i class="fa fa-upload me-1"></i> Dosya Yükle
                             </button>
                         </div>
+                        @endif
                     </div>
                     <div class="card-body">
                         @if (session('success'))
@@ -93,7 +95,7 @@
                                                         elseif(in_array(strtolower($ext), ['xls', 'xlsx'])) $icon = 'fa-file-excel';
                                                     @endphp
                                                     <i class="fa {{ $icon }} fa-lg me-3 text-primary"></i>
-                                                    <a href="javascript:void(0)" onclick="previewFile('{{ asset('storage/' . $file->file_path) }}', '{{ $file->file_name }}', '{{ $ext }}')" class="text-primary fw-bold">
+                                                    <a href="javascript:void(0)" onclick='previewFile({{ \Illuminate\Support\Js::from(asset("storage/" . $file->file_path)) }}, {{ \Illuminate\Support\Js::from($file->file_name) }}, {{ \Illuminate\Support\Js::from($ext) }})' class="text-primary fw-bold">
                                                         {{ $file->title }}
                                                     </a>
                                                 </div>
@@ -107,7 +109,7 @@
                                                         <i class="fa fa-download"></i>
                                                     </a>
                                                     
-                                                    @if(Auth::id() == $file->user_id)
+                                                    @if(Auth::user()->hasPermission('delete_files') && Auth::id() == $file->user_id)
                                                     <form action="{{ route('files.destroy', $file->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Bu dosyayı silmek istediğinize emin misiniz?');">
                                                         @csrf
                                                         @method('DELETE')
@@ -117,8 +119,8 @@
                                                     </form>
                                                     @endif
 
-                                                    @if(Auth::user()->is_admin)
-                                                    <button type="button" class="btn btn-warning shadow btn-xs sharp" title="Taşı" onclick="openMoveModal('{{ $file->id }}', '{{ $file->title }}')">
+                                                    @if(Auth::user()->is_admin && Auth::user()->hasPermission('delete_files'))
+                                                    <button type="button" class="btn btn-warning shadow btn-xs sharp" title="Taşı" onclick='openMoveModal({{ \Illuminate\Support\Js::from($file->id) }}, {{ \Illuminate\Support\Js::from($file->title) }})'>
                                                         <i class="fa fa-folder-open"></i>
                                                     </button>
                                                     @endif
@@ -142,6 +144,7 @@
     </div>
 </div>
 
+@if(Auth::user()->is_admin && Auth::user()->hasPermission('delete_files'))
 <!-- Move File Modal -->
 <div class="modal fade" id="moveFileModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
@@ -157,7 +160,7 @@
                         <label class="form-label">Hedef Klasör</label>
                         <select name="target_folder_id" class="form-control">
                             <option value="">Ana Dizin</option>
-                            @foreach(\App\Models\Folder::where('user_id', Auth::id())->get() as $folder)
+                            @foreach(\App\Models\Folder::query()->when(!Auth::user()->is_admin, function ($q) { $q->where('user_id', Auth::id()); })->get() as $folder)
                                 <option value="{{ $folder->id }}">{{ $folder->name }}</option>
                             @endforeach
                         </select>
@@ -171,7 +174,9 @@
         </div>
     </div>
 </div>
+@endif
 
+@if(Auth::user()->hasPermission('upload_files'))
 <!-- Create Folder Modal -->
 <div class="modal fade" id="createFolderModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
@@ -231,6 +236,7 @@
         </div>
     </div>
 </div>
+@endif
 
 <!-- Preview Modal -->
 <div class="modal fade" id="previewModal" tabindex="-1" aria-hidden="true">

@@ -86,7 +86,7 @@
         </div>
 
         <!-- Row 2: Pending Approvals (Admin Only) -->
-        @if(Auth::user()->is_admin && $pendingVacations->count() > 0)
+        @if(Auth::user()->is_admin && Auth::user()->hasPermission('approve_vacations') && $pendingVacations->count() > 0)
         <div class="row">
             <div class="col-12">
                 <div class="card">
@@ -118,11 +118,21 @@
                                         </td>
                                         <td>{{ $vacation->vacation_date ? $vacation->vacation_date->format('d.m.Y') : '-' }}</td>
                                         <td>{{ $vacation->vacation_start ? $vacation->vacation_start->format('H:i') : '-' }} - {{ $vacation->vacation_end ? $vacation->vacation_end->format('H:i') : '-' }}</td>
-                                        <td>{{ $vacation->vacation_reason }}</td>
+                                        <td>{{ $vacation->vacation_why }}</td>
                                         <td>
                                             <div class="d-flex">
-                                                <a href="{{ route('vacations.verify', $vacation->id) }}" class="btn btn-success shadow btn-xs sharp me-1"><i class="fa fa-check"></i></a>
-                                                <a href="{{ route('vacations.reject', $vacation->id) }}" class="btn btn-danger shadow btn-xs sharp"><i class="fa fa-times"></i></a>
+                                                <form action="{{ route('vacations.verify', $vacation->id) }}" method="POST" class="me-1">
+                                                    @csrf
+                                                    <button type="submit" class="btn btn-success shadow btn-xs sharp">
+                                                        <i class="fa fa-check"></i>
+                                                    </button>
+                                                </form>
+                                                <form action="{{ route('vacations.reject', $vacation->id) }}" method="POST">
+                                                    @csrf
+                                                    <button type="submit" class="btn btn-danger shadow btn-xs sharp">
+                                                        <i class="fa fa-times"></i>
+                                                    </button>
+                                                </form>
                                             </div>
                                         </td>
                                     </tr>
@@ -194,7 +204,7 @@
                                 </div>
                                 <div class="ms-3">
                                     <h4 class="fs-18 font-w500">{{ $vacation->user->name ?? 'Bilinmiyor' }}</h4>
-                                    <span class="font-w400 d-block">{{ $vacation->vacation_reason }}</span>
+                                    <span class="font-w400 d-block">{{ $vacation->vacation_why }}</span>
                                     <div class="final-badge mt-2">
                                         <x-vacation-status-badge :status="$vacation->is_verified" />
                                         <span class="badge text-black border ms-2">
@@ -356,7 +366,7 @@
                             
                             messageDiv.innerHTML = `
                                 <div class="${isSender ? 'bg-primary text-white' : 'bg-white text-dark'}" style="max-width: 80%; padding: 8px 12px; border-radius: 15px; box-shadow: 0 1px 2px rgba(0,0,0,0.1);">
-                                    ${!isSender ? `<small class="fw-bold d-block mb-1" style="font-size: 0.7rem;">${senderName}</small>` : ''}
+                                    ${!isSender ? `<small class="fw-bold d-block mb-1" style="font-size: 0.7rem;">${escapeHtml(senderName)}</small>` : ''}
                                     <p class="mb-0" style="font-size: 0.9rem;">${escapeHtml(message.message)}</p>
                                     <small class="${isSender ? 'text-white-50' : 'text-muted'} d-block text-end mt-1" style="font-size: 0.65rem;">
                                         ${formatTime(message.created_at)}

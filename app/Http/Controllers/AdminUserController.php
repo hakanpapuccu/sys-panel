@@ -43,6 +43,7 @@ class AdminUserController extends Controller
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'department_id' => ['nullable', 'exists:departments,id'],
             'roles' => ['array'],
+            'roles.*' => ['integer', 'exists:roles,id'],
         ]);
 
         $user = User::create([
@@ -75,14 +76,13 @@ class AdminUserController extends Controller
      */
     public function update(Request $request, User $user)
     {
-        \Illuminate\Support\Facades\Log::info('User update request:', $request->all());
-        
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,'.$user->id],
             'is_admin' => ['boolean'],
             'department_id' => ['nullable', 'exists:departments,id'],
             'roles' => ['array'],
+            'roles.*' => ['integer', 'exists:roles,id'],
         ]);
 
         $user->name = $request->name;
@@ -97,7 +97,6 @@ class AdminUserController extends Controller
             $user->password = Hash::make($request->password);
         }
 
-        \Illuminate\Support\Facades\Log::info('User before save:', $user->toArray());
         $user->save();
 
         if ($request->has('roles')) {
