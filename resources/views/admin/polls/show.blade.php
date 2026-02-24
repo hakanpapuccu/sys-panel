@@ -17,7 +17,7 @@
                 <div class="card">
                     <div class="card-header">
                         <h4 class="card-title">{{ $poll->title }} - Sonuçlar</h4>
-                        <span>Toplam Katılım: {{ $poll->responses->count() }}</span>
+                        <span>Toplam Katılım: {{ $totalResponses }}</span>
                     </div>
                     <div class="card-body">
                         @foreach($poll->questions as $question)
@@ -37,7 +37,7 @@
                                         <tbody>
                                             @foreach($stats[$question->id] as $option => $count)
                                             @php
-                                                $total = $poll->responses->count();
+                                                $total = $totalResponses;
                                                 $percent = $total > 0 ? round(($count / $total) * 100, 1) : 0;
                                             @endphp
                                             <tr>
@@ -57,9 +57,9 @@
                                 <div class="border p-3" style="max-height: 200px; overflow-y: auto;">
                                     <h6>Son 10 Cevap:</h6>
                                     <ul class="list-group list-group-flush">
-                                        @foreach($question->answers()->with('response.user')->latest()->take(10)->get() as $answer)
+                                        @foreach(($latestAnswersByQuestion[$question->id] ?? collect()) as $answer)
                                         <li class="list-group-item">
-                                            <strong>{{ $answer->response->user->name }}:</strong> {{ $answer->answer_text }}
+                                            <strong>{{ $answer->response->user->name ?? 'Bilinmeyen' }}:</strong> {{ $answer->answer_text }}
                                         </li>
                                         @endforeach
                                     </ul>

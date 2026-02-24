@@ -30,46 +30,72 @@ class VacationsController extends Controller
     {
         $user = Auth::user();
 
-        // Vacation Stats
-        if ($user->is_admin) {
-            $vacations = Vacation::latest()->take(5)->get();
-            $pendingVacationsCount = Vacation::where('is_verified', 2)->count();
-        } else {
-            $vacations = Vacation::where('vacation_user_id', $user->id)->latest()->take(5)->get();
-            $pendingVacationsCount = Vacation::where('vacation_user_id', $user->id)->where('is_verified', 2)->count();
+        $vacationScope = Vacation::query()->with('user:id,name');
+        if (! $user->is_admin) {
+            $vacationScope->where('vacation_user_id', $user->id);
         }
 
-        // Task Stats
-        if ($user->is_admin) {
-            $tasks = Task::latest()->take(5)->get();
-            $pendingTasksCount = Task::where('status', 'pending')->count();
-            $inProgressTasksCount = Task::where('status', 'in_progress')->count();
-            $completedTasksCount = Task::where('status', 'completed')->count();
-            $totalTasksCount = Task::count();
-        } else {
-            $tasks = Task::where('assigned_to_id', $user->id)->orWhere('created_by_id', $user->id)->latest()->take(5)->get();
-            $pendingTasksCount = Task::where(function ($q) use ($user) {
-                $q->where('assigned_to_id', $user->id)->orWhere('created_by_id', $user->id);
-            })->where('status', 'pending')->count();
-            $inProgressTasksCount = Task::where(function ($q) use ($user) {
-                $q->where('assigned_to_id', $user->id)->orWhere('created_by_id', $user->id);
-            })->where('status', 'in_progress')->count();
-            $completedTasksCount = Task::where(function ($q) use ($user) {
-                $q->where('assigned_to_id', $user->id)->orWhere('created_by_id', $user->id);
-            })->where('status', 'completed')->count();
-            $totalTasksCount = Task::where(function ($q) use ($user) {
-                $q->where('assigned_to_id', $user->id)->orWhere('created_by_id', $user->id);
-            })->count();
+        $vacations = (clone $vacationScope)
+            ->latest()
+            ->take(5)
+            ->get();
+
+        $pendingVacationsCount = (clone $vacationScope)
+            ->where('is_verified', Vacation::STATUS_PENDING)
+            ->count();
+
+        $taskScope = Task::query();
+        if (! $user->is_admin) {
+            $taskScope->where(function ($query) use ($user) {
+                $query->where('assigned_to_id', $user->id)
+                    ->orWhere('created_by_id', $user->id);
+            });
         }
+
+        $tasks = (clone $taskScope)
+            ->latest()
+            ->take(5)
+            ->get(['id', 'title', 'priority', 'deadline', 'status', 'created_at']);
+
+        $taskCounts = (clone $taskScope)
+            ->selectRaw('status, COUNT(*) as total')
+            ->groupBy('status')
+            ->pluck('total', 'status');
+
+        $pendingTasksCount = (int) ($taskCounts['pending'] ?? 0);
+        $inProgressTasksCount = (int) ($taskCounts['in_progress'] ?? 0);
+        $completedTasksCount = (int) ($taskCounts['completed'] ?? 0);
+        $totalTasksCount = (int) $taskCounts->sum();
 
         // Other Stats
-        $latestAnnouncements = Announcement::latest()->take(3)->get();
-        $activePollsCount = Poll::where('end_date', '>=', now())->count();
+        $latestAnnouncements = Announcement::query()
+            ->latest()
+            ->take(3)
+            ->get(['id', 'content', 'created_at']);
+        $activePollsCount = Poll::query()
+            ->where('is_active', true)
+            ->where(function ($query) {
+                $query->whereNull('start_date')->orWhere('start_date', '<=', now());
+            })
+            ->where(function ($query) {
+                $query->whereNull('end_date')->orWhere('end_date', '>=', now());
+            })
+            ->count();
 
-        $unreadMessagesCount = Message::where('receiver_id', $user->id)->where('is_read', false)->count();
+        $unreadMessagesCount = Message::query()
+            ->where('receiver_id', $user->id)
+            ->where('is_read', false)
+            ->count();
         $announcementsCount = Announcement::count();
 
-        $pendingVacations = Vacation::where('is_verified', 2)->orderBy('created_at', 'desc')->get();
+        $pendingVacations = collect();
+        if ($user->is_admin && $user->hasPermission('approve_vacations')) {
+            $pendingVacations = Vacation::query()
+                ->with('user:id,name')
+                ->where('is_verified', Vacation::STATUS_PENDING)
+                ->orderBy('created_at', 'desc')
+                ->get();
+        }
 
         return view('dashboard.content', compact(
             'vacations',

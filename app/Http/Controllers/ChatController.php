@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\SendMessageRequest;
 use App\Models\Message;
 use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class ChatController extends Controller
@@ -16,7 +17,7 @@ class ChatController extends Controller
     {
         $users = User::where('id', '!=', Auth::id())
             ->orderBy('name')
-            ->get();
+            ->get(['id', 'name', 'profile_image']);
 
         return view('chat.index', compact('users'));
     }
@@ -24,17 +25,33 @@ class ChatController extends Controller
     /**
      * Get messages between current user and specified user
      */
-    public function getMessages(User $user)
+    public function getMessages(Request $request, User $user)
     {
-        $messages = Message::where(function ($query) use ($user) {
-            $query->where('sender_id', Auth::id())
-                ->where('receiver_id', $user->id);
-        })->orWhere(function ($query) use ($user) {
-            $query->where('sender_id', $user->id)
-                ->where('receiver_id', Auth::id());
-        })
-            ->orderBy('created_at', 'asc')
-            ->get();
+        $sinceId = (int) $request->query('since_id', 0);
+
+        $baseQuery = Message::query()->where(function ($query) use ($user) {
+            $query->where(function ($subQuery) use ($user) {
+                $subQuery->where('sender_id', Auth::id())
+                    ->where('receiver_id', $user->id);
+            })->orWhere(function ($subQuery) use ($user) {
+                $subQuery->where('sender_id', $user->id)
+                    ->where('receiver_id', Auth::id());
+            });
+        });
+
+        if ($sinceId > 0) {
+            $messages = (clone $baseQuery)
+                ->where('id', '>', $sinceId)
+                ->orderBy('id', 'asc')
+                ->get();
+        } else {
+            $messages = (clone $baseQuery)
+                ->orderBy('id', 'desc')
+                ->limit(200)
+                ->get()
+                ->reverse()
+                ->values();
+        }
 
         // Mark messages as read
         Message::where('sender_id', $user->id)
@@ -89,11 +106,15 @@ class ChatController extends Controller
         $userId = Auth::id();
 
         // Get all users that the current user has messaged or received messages from
-        $conversations = User::whereHas('sentMessages', function ($query) use ($userId) {
-            $query->where('receiver_id', $userId);
-        })->orWhereHas('receivedMessages', function ($query) use ($userId) {
-            $query->where('sender_id', $userId);
-        })
+        $conversations = User::query()
+            ->where('id', '!=', $userId)
+            ->where(function ($query) use ($userId) {
+                $query->whereHas('sentMessages', function ($subQuery) use ($userId) {
+                    $subQuery->where('receiver_id', $userId);
+                })->orWhereHas('receivedMessages', function ($subQuery) use ($userId) {
+                    $subQuery->where('sender_id', $userId);
+                });
+            })
             ->with(['sentMessages' => function ($query) use ($userId) {
                 $query->where('receiver_id', $userId)
                     ->latest()
@@ -103,22 +124,27 @@ class ChatController extends Controller
                     ->latest()
                     ->limit(1);
             }])
-            ->get()
-            ->map(function ($user) use ($userId) {
+            ->get(['users.id', 'users.name', 'users.profile_image']);
+
+        $unreadCounts = Message::query()
+            ->where('receiver_id', $userId)
+            ->where('is_read', false)
+            ->whereIn('sender_id', $conversations->pluck('id'))
+            ->selectRaw('sender_id, COUNT(*) as unread_count')
+            ->groupBy('sender_id')
+            ->pluck('unread_count', 'sender_id');
+
+        $conversations = $conversations
+            ->map(function ($user) use ($unreadCounts) {
                 $lastMessage = collect([
                     $user->sentMessages->first(),
                     $user->receivedMessages->first(),
                 ])->filter()->sortByDesc('created_at')->first();
 
-                $unreadCount = Message::where('sender_id', $user->id)
-                    ->where('receiver_id', $userId)
-                    ->where('is_read', false)
-                    ->count();
-
                 return [
                     'user' => $user,
                     'last_message' => $lastMessage,
-                    'unread_count' => $unreadCount,
+                    'unread_count' => (int) ($unreadCounts[$user->id] ?? 0),
                 ];
             })
             ->sortByDesc('last_message.created_at')
@@ -130,12 +156,27 @@ class ChatController extends Controller
     /**
      * Get general/public messages
      */
-    public function getGeneralMessages()
+    public function getGeneralMessages(Request $request)
     {
-        $messages = Message::where('is_general', true)
-            ->with(['sender'])
-            ->orderBy('created_at', 'asc')
-            ->get();
+        $sinceId = (int) $request->query('since_id', 0);
+
+        $baseQuery = Message::query()
+            ->where('is_general', true)
+            ->with(['sender:id,name']);
+
+        if ($sinceId > 0) {
+            $messages = (clone $baseQuery)
+                ->where('id', '>', $sinceId)
+                ->orderBy('id', 'asc')
+                ->get();
+        } else {
+            $messages = (clone $baseQuery)
+                ->orderBy('id', 'desc')
+                ->limit(200)
+                ->get()
+                ->reverse()
+                ->values();
+        }
 
         return response()->json($messages);
     }

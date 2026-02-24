@@ -1,8 +1,8 @@
 (function (window, document) {
     'use strict';
 
-    var ACTIVE_POLL_INTERVAL_MS = 3000;
-    var HIDDEN_POLL_INTERVAL_MS = 15000;
+    var ACTIVE_POLL_INTERVAL_MS = 5000;
+    var HIDDEN_POLL_INTERVAL_MS = 30000;
 
     function getPollDelay() {
         return document.hidden ? HIDDEN_POLL_INTERVAL_MS : ACTIVE_POLL_INTERVAL_MS;
@@ -73,6 +73,7 @@
         }
 
         var pollTimer = null;
+        var lastGeneralMessageId = 0;
 
         function clearPollTimer() {
             if (pollTimer) {
@@ -121,14 +122,27 @@
         function renderMessages(messages, silent) {
             var shouldStickToBottom = !silent || isNearBottom(messagesContainer);
 
-            messagesContainer.innerHTML = '';
+            if (!silent) {
+                messagesContainer.innerHTML = '';
+                lastGeneralMessageId = 0;
+            }
 
             messages.forEach(function (message) {
+                if (silent && messagesContainer.querySelector('[data-message-id="' + message.id + '"]')) {
+                    return;
+                }
+
+                var numericId = Number(message.id || 0);
+                if (numericId > lastGeneralMessageId) {
+                    lastGeneralMessageId = numericId;
+                }
+
                 var isSender = Number(message.sender_id) === currentUserId;
                 var senderName = message.sender && message.sender.name ? message.sender.name : 'Bilinmeyen';
 
                 var messageWrapper = document.createElement('div');
                 messageWrapper.className = 'd-flex justify-content-' + (isSender ? 'end' : 'start') + ' mb-2';
+                messageWrapper.setAttribute('data-message-id', message.id);
 
                 messageWrapper.innerHTML =
                     '<div class="dashboard-message-bubble ' + (isSender ? 'bg-primary text-white' : 'bg-white text-dark') + '">' +
@@ -150,7 +164,13 @@
                 return Promise.resolve();
             }
 
-            return getJson(routes.generalMessages)
+            var requestUrl = routes.generalMessages;
+            var sinceId = silent ? lastGeneralMessageId : 0;
+            if (sinceId > 0) {
+                requestUrl += (requestUrl.indexOf('?') === -1 ? '?' : '&') + 'since_id=' + sinceId;
+            }
+
+            return getJson(requestUrl)
                 .then(function (messages) {
                     renderMessages(messages, !!silent);
                 })

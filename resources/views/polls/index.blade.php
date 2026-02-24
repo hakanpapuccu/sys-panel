@@ -28,12 +28,12 @@
                             </li>
                             <li class="list-group-item d-flex px-0 justify-content-between">
                                 <strong>Soru Sayısı:</strong>
-                                <span class="mb-0">{{ $poll->questions->count() }}</span>
+                                <span class="mb-0">{{ $poll->questions_count }}</span>
                             </li>
                         </ul>
                     </div>
                     <div class="card-footer border-0 pt-0 pb-4">
-                        @if($poll->responses->isNotEmpty())
+                        @if($poll->user_response_count > 0)
                             <button class="btn btn-success btn-block" disabled>Katıldınız</button>
                         @else
                             <a href="{{ route('polls.show', $poll->id) }}" class="btn btn-primary btn-block">Katıl</a>

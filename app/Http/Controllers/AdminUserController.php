@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreAdminUserRequest;
 use App\Http\Requests\UpdateAdminUserRequest;
 use App\Models\Department;
+use App\Models\Role;
 use App\Models\User;
 use App\Support\Audit;
 use Illuminate\Support\Facades\Hash;
@@ -16,7 +17,10 @@ class AdminUserController extends Controller
      */
     public function index()
     {
-        $users = User::paginate(10);
+        $users = User::query()
+            ->with('department:id,name')
+            ->select(['id', 'name', 'email', 'is_admin', 'department_id'])
+            ->paginate(10);
 
         return view('admin.users.index', compact('users'));
     }
@@ -30,7 +34,7 @@ class AdminUserController extends Controller
     public function create()
     {
         $departments = Department::all();
-        $roles = \App\Models\Role::all();
+        $roles = Role::all();
 
         return view('admin.users.create', compact('departments', 'roles'));
     }
@@ -71,7 +75,8 @@ class AdminUserController extends Controller
     public function edit(User $user)
     {
         $departments = Department::all();
-        $roles = \App\Models\Role::all();
+        $roles = Role::all();
+        $user->load('roles:id');
 
         return view('admin.users.edit', compact('user', 'departments', 'roles'));
     }

@@ -167,7 +167,7 @@
                                     <span class="bg-info text-white"><i class="fas fa-bullhorn"></i></span>
                                 </div>
                                 <div class="ms-3">
-                                    <h4 class="fs-18 font-w500">{{ $announcement->title }}</h4>
+                                    <h4 class="fs-18 font-w500">{{ Str::limit(strip_tags($announcement->content), 40) }}</h4>
                                     <span class="font-w400 d-block text-muted">{{ Str::limit(strip_tags($announcement->content), 80) }}</span>
                                     <small class="text-muted">{{ $announcement->created_at->diffForHumans() }}</small>
                                 </div>

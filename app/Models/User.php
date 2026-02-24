@@ -12,6 +12,8 @@ class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
 
+    protected ?array $permissionNameMap = null;
+
     /**
      * The attributes that are mass assignable.
      *
@@ -82,6 +84,8 @@ class User extends Authenticatable
 
     public function hasRole($role)
     {
+        $this->loadMissing('roles');
+
         if (is_string($role)) {
             return $this->roles->contains('name', $role);
         }
@@ -96,7 +100,24 @@ class User extends Authenticatable
             return true;
         }
 
-        return $this->roles->flatMap->permissions->contains('name', $permission);
+        if ($this->permissionNameMap === null) {
+            $this->loadMissing('roles.permissions');
+
+            $this->permissionNameMap = $this->roles
+                ->flatMap(function ($role) {
+                    return $role->permissions->pluck('name');
+                })
+                ->unique()
+                ->flip()
+                ->all();
+        }
+
+        return array_key_exists($permission, $this->permissionNameMap);
+    }
+
+    public function clearPermissionCache(): void
+    {
+        $this->permissionNameMap = null;
     }
 
     public function assignRole($role)
@@ -105,5 +126,6 @@ class User extends Authenticatable
             $role = Role::where('name', $role)->firstOrFail();
         }
         $this->roles()->syncWithoutDetaching($role);
+        $this->clearPermissionCache();
     }
 }

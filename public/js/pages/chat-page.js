@@ -1,8 +1,8 @@
 (function (window, document) {
     'use strict';
 
-    var ACTIVE_POLL_INTERVAL_MS = 3000;
-    var HIDDEN_POLL_INTERVAL_MS = 15000;
+    var ACTIVE_POLL_INTERVAL_MS = 5000;
+    var HIDDEN_POLL_INTERVAL_MS = 30000;
 
     function getPollDelay() {
         return document.hidden ? HIDDEN_POLL_INTERVAL_MS : ACTIVE_POLL_INTERVAL_MS;
@@ -98,6 +98,8 @@
         var generalPollTimer = null;
         var currentReceiverId = null;
         var isGeneralTabActive = false;
+        var lastDirectMessageId = 0;
+        var lastGeneralMessageId = 0;
 
         function clearDirectPollTimer() {
             if (directPollTimer) {
@@ -172,11 +174,17 @@
 
             if (!silent) {
                 directContainer.innerHTML = '';
+                lastDirectMessageId = 0;
             }
 
             messages.forEach(function (message) {
                 if (silent && directContainer.querySelector('[data-message-id="' + message.id + '"]')) {
                     return;
+                }
+
+                var numericId = Number(message.id || 0);
+                if (numericId > lastDirectMessageId) {
+                    lastDirectMessageId = numericId;
                 }
 
                 var isSender = Number(message.sender_id) === currentUserId;
@@ -213,11 +221,17 @@
 
             if (!silent) {
                 generalContainer.innerHTML = '';
+                lastGeneralMessageId = 0;
             }
 
             messages.forEach(function (message) {
                 if (silent && generalContainer.querySelector('[data-message-id="' + message.id + '"]')) {
                     return;
+                }
+
+                var numericId = Number(message.id || 0);
+                if (numericId > lastGeneralMessageId) {
+                    lastGeneralMessageId = numericId;
                 }
 
                 var isSender = Number(message.sender_id) === currentUserId;
@@ -258,6 +272,10 @@
             }
 
             var requestUrl = routes.messages.replace('__USER__', String(userId));
+            var sinceId = silent ? lastDirectMessageId : 0;
+            if (sinceId > 0) {
+                requestUrl += (requestUrl.indexOf('?') === -1 ? '?' : '&') + 'since_id=' + sinceId;
+            }
             return getJson(requestUrl)
                 .then(function (messages) {
                     displayDirectMessages(messages, !!silent);
@@ -272,7 +290,13 @@
                 return Promise.resolve();
             }
 
-            return getJson(routes.general)
+            var requestUrl = routes.general;
+            var sinceId = silent ? lastGeneralMessageId : 0;
+            if (sinceId > 0) {
+                requestUrl += (requestUrl.indexOf('?') === -1 ? '?' : '&') + 'since_id=' + sinceId;
+            }
+
+            return getJson(requestUrl)
                 .then(function (messages) {
                     displayGeneralMessages(messages, !!silent);
                 })
@@ -289,6 +313,7 @@
             }
 
             currentReceiverId = userItem.getAttribute('data-user-id');
+            lastDirectMessageId = 0;
 
             document.querySelectorAll('.user-item').forEach(function (item) {
                 item.classList.remove('active');
@@ -370,6 +395,7 @@
         function activateGeneralTab() {
             isGeneralTabActive = true;
             clearDirectPollTimer();
+            lastGeneralMessageId = 0;
             loadGeneralMessages(false).finally(scheduleGeneralPoll);
         }
 

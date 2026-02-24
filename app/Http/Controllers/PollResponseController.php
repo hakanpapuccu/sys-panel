@@ -11,6 +11,8 @@ class PollResponseController extends Controller
 {
     public function index()
     {
+        $userId = auth()->id();
+
         $polls = Poll::where('is_active', true)
             ->where(function ($query) {
                 $query->whereNull('start_date')->orWhere('start_date', '<=', now());
@@ -18,9 +20,11 @@ class PollResponseController extends Controller
             ->where(function ($query) {
                 $query->whereNull('end_date')->orWhere('end_date', '>=', now());
             })
-            ->with(['responses' => function ($query) {
-                $query->where('user_id', auth()->id());
+            ->withCount('questions')
+            ->withCount(['responses as user_response_count' => function ($query) use ($userId) {
+                $query->where('user_id', $userId);
             }])
+            ->orderByDesc('created_at')
             ->get();
 
         return view('polls.index', compact('polls'));
