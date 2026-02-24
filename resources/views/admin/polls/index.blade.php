@@ -7,7 +7,8 @@
     <div class="container-fluid">
         <div class="row page-titles">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item active"><a href="javascript:void(0)">Anketler</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Anasayfa</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Anket Yönetimi</li>
             </ol>
         </div>
 
@@ -46,17 +47,17 @@
                                         </td>
                                         <td>{{ $poll->responses_count }}</td>
                                         <td>
-                                            <div class="d-flex">
-                                                <a href="{{ route('admin.polls.show', $poll->id) }}" class="btn btn-info shadow btn-xs sharp me-1" title="Sonuçlar">
+                                            <div class="table-action-group">
+                                                <a href="{{ route('admin.polls.show', $poll->id) }}" class="btn btn-info shadow btn-xs sharp action-btn" title="Sonuçlar" aria-label="{{ $poll->title }} anket sonuçlarını görüntüle">
                                                     <i class="fas fa-chart-bar"></i>
                                                 </a>
-                                                <a href="{{ route('admin.polls.edit', $poll->id) }}" class="btn btn-primary shadow btn-xs sharp me-1" title="Düzenle">
+                                                <a href="{{ route('admin.polls.edit', $poll->id) }}" class="btn btn-primary shadow btn-xs sharp action-btn" title="Düzenle" aria-label="{{ $poll->title }} anketini düzenle">
                                                     <i class="fas fa-pencil-alt"></i>
                                                 </a>
                                                 <form action="{{ route('admin.polls.destroy', $poll->id) }}" method="POST" onsubmit="return confirm('Bu anketi silmek istediğinize emin misiniz?');">
                                                     @csrf
                                                     @method('DELETE')
-                                                    <button type="submit" class="btn btn-danger shadow btn-xs sharp"><i class="fa fa-trash"></i></button>
+                                                    <button type="submit" class="btn btn-danger shadow btn-xs sharp action-btn" aria-label="{{ $poll->title }} anketini sil"><i class="fa fa-trash"></i></button>
                                                 </form>
                                             </div>
                                         </td>

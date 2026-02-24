@@ -8,10 +8,10 @@
         <div class="row page-titles">
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="{{ route('admin.roles.index') }}">Rol Yönetimi</a></li>
-                <li class="breadcrumb-item active"><a href="javascript:void(0)">Rol Düzenle</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Rol Düzenle</li>
             </ol>
         </div>
-        
+
         <div class="row">
             <div class="col-lg-12">
                 <div class="card">
@@ -45,7 +45,7 @@
                                 <!-- Permissions -->
                                 <div class="col-lg-12 mb-3">
                                     <h4 class="mb-3">İzinler</h4>
-                                    
+
                                     <div class="row">
                                         @foreach($permissions as $module => $modulePermissions)
                                             <div class="col-md-4 mb-4">

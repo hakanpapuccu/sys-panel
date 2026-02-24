@@ -8,10 +8,10 @@
         <div class="row page-titles">
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="{{ route('admin.users.index') }}">Kullanıcı Yönetimi</a></li>
-                <li class="breadcrumb-item active"><a href="javascript:void(0)">Kullanıcı Düzenle</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Kullanıcı Düzenle</li>
             </ol>
         </div>
-        
+
         <div class="row">
             <div class="col-lg-12">
                 <div class="card">

@@ -8,7 +8,7 @@
         <div class="row page-titles">
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="{{ route('admin.polls.index') }}">Anketler</a></li>
-                <li class="breadcrumb-item active"><a href="javascript:void(0)">Sonuçlar</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Sonuçlar</li>
             </ol>
         </div>
 
@@ -23,7 +23,7 @@
                         @foreach($poll->questions as $question)
                         <div class="mb-5">
                             <h5>{{ $loop->iteration }}. {{ $question->question }}</h5>
-                            
+
                             @if(in_array($question->type, ['radio', 'checkbox']))
                                 <div class="table-responsive">
                                     <table class="table table-sm table-bordered" style="width: auto;">

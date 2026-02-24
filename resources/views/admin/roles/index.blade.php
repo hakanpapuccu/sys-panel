@@ -7,10 +7,11 @@
     <div class="container-fluid">
         <div class="row page-titles">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item active"><a href="javascript:void(0)">Rol Yönetimi</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Anasayfa</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Rol Yönetimi</li>
             </ol>
         </div>
-        
+
         <div class="row">
             <div class="col-lg-12">
                 <div class="card">
@@ -44,19 +45,19 @@
                                             <td>{{ $role->label }}</td>
                                             <td>
                                                 <span class="badge badge-info">{{ $role->permissions->count() }} İzin</span>
-                                            </td>
-                                            <td>
-                                                <div class="d-flex">
-                                                    <a href="{{ route('admin.roles.edit', $role) }}" class="btn btn-primary shadow btn-xs sharp me-1">
-                                                        <i class="fas fa-pencil-alt"></i>
-                                                    </a>
-                                                    <form action="{{ route('admin.roles.destroy', $role) }}" method="POST" class="d-inline" onsubmit="return confirm('Bu rolü silmek istediğinize emin misiniz?');">
-                                                        @csrf
-                                                        @method('DELETE')
-                                                        <button type="submit" class="btn btn-danger shadow btn-xs sharp">
-                                                            <i class="fa fa-trash"></i>
-                                                        </button>
-                                                    </form>
+	                                            </td>
+	                                            <td>
+	                                                <div class="table-action-group">
+	                                                    <a href="{{ route('admin.roles.edit', $role) }}" class="btn btn-primary shadow btn-xs sharp action-btn" aria-label="{{ $role->label }} rolünü düzenle">
+	                                                        <i class="fas fa-pencil-alt"></i>
+	                                                    </a>
+	                                                    <form action="{{ route('admin.roles.destroy', $role) }}" method="POST" class="d-inline" onsubmit="return confirm('Bu rolü silmek istediğinize emin misiniz?');">
+	                                                        @csrf
+	                                                        @method('DELETE')
+	                                                        <button type="submit" class="btn btn-danger shadow btn-xs sharp action-btn" aria-label="{{ $role->label }} rolünü sil">
+	                                                            <i class="fa fa-trash"></i>
+	                                                        </button>
+	                                                    </form>
                                                 </div>
                                             </td>
                                         </tr>

@@ -14,9 +14,9 @@
                         <a href="{{ route('tasks.create') }}" class="btn btn-primary">Yeni Görev Oluştur</a>
                         @endif
                     </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table id="example3" class="display" style="min-width: 845px">
+	                    <div class="card-body">
+	                        <div class="table-responsive">
+	                            <table id="example3" class="display min-table-width-845">
                                 <thead>
                                     <tr>
                                         <th>Başlık</th>
@@ -54,18 +54,18 @@
                                             @endif
                                         </td>
                                         <td>{{ $task->assignedTo->name }}</td>
-                                        <td>{{ $task->deadline ? $task->deadline->format('d.m.Y H:i') : '-' }}</td>
-                                        <td>
-                                            <div class="d-flex">
-                                                <a href="{{ route('tasks.edit', $task->id) }}" class="btn btn-primary shadow btn-xs sharp me-1"><i class="fas fa-pencil-alt"></i></a>
-                                                @if(Auth::user()->is_admin)
-                                                <form action="{{ route('tasks.destroy', $task->id) }}" method="POST" onsubmit="return confirm('Emin misiniz?');">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="btn btn-danger shadow btn-xs sharp"><i class="fa fa-trash"></i></button>
-                                                </form>
-                                                @endif
-                                            </div>
+	                                        <td>{{ $task->deadline ? $task->deadline->format('d.m.Y H:i') : '-' }}</td>
+	                                        <td>
+	                                            <div class="table-action-group">
+	                                                <a href="{{ route('tasks.edit', $task->id) }}" class="btn btn-primary shadow btn-xs sharp action-btn" aria-label="{{ $task->title }} görevini düzenle"><i class="fas fa-pencil-alt"></i></a>
+	                                                @if(Auth::user()->is_admin)
+	                                                <form action="{{ route('tasks.destroy', $task->id) }}" method="POST" onsubmit="return confirm('Emin misiniz?');">
+	                                                    @csrf
+	                                                    @method('DELETE')
+	                                                    <button type="submit" class="btn btn-danger shadow btn-xs sharp action-btn" aria-label="{{ $task->title }} görevini sil"><i class="fa fa-trash"></i></button>
+	                                                </form>
+	                                                @endif
+	                                            </div>
                                         </td>
                                     </tr>
                                     @endforeach

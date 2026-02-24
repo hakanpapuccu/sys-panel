@@ -8,7 +8,7 @@
         <div class="row page-titles">
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="{{ route('admin.polls.index') }}">Anketler</a></li>
-                <li class="breadcrumb-item active"><a href="javascript:void(0)">Yeni Anket</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Yeni Anket</li>
             </ol>
         </div>
 
@@ -71,7 +71,7 @@
     function addQuestion() {
         const container = document.getElementById('questions-container');
         const index = questionCount++;
-        
+
         const html = `
             <div class="card border mb-3 question-item" id="question-${index}">
                 <div class="card-body">
@@ -107,7 +107,7 @@
                 </div>
             </div>
         `;
-        
+
         container.insertAdjacentHTML('beforeend', html);
     }
 

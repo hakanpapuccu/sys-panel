@@ -8,7 +8,7 @@
         <div class="row page-titles">
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="{{ route('polls.index') }}">Anketler</a></li>
-                <li class="breadcrumb-item active"><a href="javascript:void(0)">{{ $poll->title }}</a></li>
+                <li class="breadcrumb-item active" aria-current="page">{{ $poll->title }}</li>
             </ol>
         </div>
 
@@ -25,11 +25,11 @@
 
                         <form action="{{ route('polls.store', $poll->id) }}" method="POST">
                             @csrf
-                            
+
                             @foreach($poll->questions as $question)
                             <div class="mb-4 p-3 border rounded">
                                 <h5 class="mb-3">{{ $loop->iteration }}. {{ $question->question }}</h5>
-                                
+
                                 @if($question->type == 'text')
                                     <input type="text" class="form-control" name="q_{{ $question->id }}" required>
                                 @elseif($question->type == 'textarea')

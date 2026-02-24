@@ -7,8 +7,8 @@
     <div class="container-fluid">
         <div class="row page-titles">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item active"><a href="javascript:void(0)">Admin</a></li>
-                <li class="breadcrumb-item"><a href="javascript:void(0)">Platform Ayarları</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Anasayfa</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Platform Ayarları</li>
             </ol>
         </div>
 

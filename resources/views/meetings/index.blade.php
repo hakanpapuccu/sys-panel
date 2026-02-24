@@ -7,10 +7,11 @@
     <div class="container-fluid">
         <div class="row page-titles">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item active"><a href="javascript:void(0)">Toplantılar</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Anasayfa</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Toplantılar</li>
             </ol>
         </div>
-        
+
         <div class="row">
             @foreach($meetings as $meeting)
                 <div class="col-xl-4 col-lg-6 col-md-6 col-sm-6">
@@ -62,7 +63,7 @@
                 </div>
             @endif
         </div>
-        
+
         <div class="row">
             <div class="col-12">
                 {{ $meetings->links() }}

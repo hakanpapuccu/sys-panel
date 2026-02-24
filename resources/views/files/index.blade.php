@@ -14,7 +14,7 @@
                 @endforeach
             </ol>
         </div>
-        
+
         <div class="row">
             <div class="col-lg-12">
                 <div class="card">
@@ -71,14 +71,14 @@
                                             </div>
                                         </td>
                                         <td>Klasör</td>
-                                        <td>{{ $folder->user->name }}</td>
-                                        <td>{{ $folder->created_at->format('d.m.Y H:i') }}</td>
-                                        <td>
-                                            <a href="{{ route('files.index', ['folder_id' => $folder->id]) }}" class="btn btn-primary shadow btn-xs sharp" title="Aç">
-                                                <i class="fa fa-folder-open"></i>
-                                            </a>
-                                        </td>
-                                    </tr>
+	                                        <td>{{ $folder->user->name }}</td>
+	                                        <td>{{ $folder->created_at->format('d.m.Y H:i') }}</td>
+	                                        <td>
+	                                            <a href="{{ route('files.index', ['folder_id' => $folder->id]) }}" class="btn btn-primary shadow btn-xs sharp action-btn" title="Aç" aria-label="{{ $folder->name }} klasörünü aç">
+	                                                <i class="fa fa-folder-open"></i>
+	                                            </a>
+	                                        </td>
+	                                    </tr>
                                     @endforeach
 
                                     <!-- Files -->
@@ -93,38 +93,53 @@
                                                         elseif(in_array(strtolower($ext), ['pdf'])) $icon = 'fa-file-pdf';
                                                         elseif(in_array(strtolower($ext), ['doc', 'docx'])) $icon = 'fa-file-word';
                                                         elseif(in_array(strtolower($ext), ['xls', 'xlsx'])) $icon = 'fa-file-excel';
-                                                    @endphp
-                                                    <i class="fa {{ $icon }} fa-lg me-3 text-primary"></i>
-                                                    <a href="javascript:void(0)" onclick='previewFile({{ \Illuminate\Support\Js::from(route("files.preview", $file->id)) }}, {{ \Illuminate\Support\Js::from(route("files.download", $file->id)) }}, {{ \Illuminate\Support\Js::from($file->file_name) }}, {{ \Illuminate\Support\Js::from($ext) }})' class="text-primary fw-bold">
-                                                        {{ $file->title }}
-                                                    </a>
-                                                </div>
-                                            </td>
-                                            <td>{{ strtoupper($ext) }} Dosyası</td>
-                                            <td>{{ $file->user->name }}</td>
-                                            <td>{{ $file->created_at->format('d.m.Y H:i') }}</td>
-                                            <td>
-                                                <div class="d-flex">
-                                                    <a href="{{ route('files.download', $file->id) }}" class="btn btn-primary shadow btn-xs sharp me-1" title="İndir">
-                                                        <i class="fa fa-download"></i>
-                                                    </a>
-                                                    
-                                                    @if(Auth::user()->hasPermission('delete_files') && Auth::id() == $file->user_id)
-                                                    <form action="{{ route('files.destroy', $file->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Bu dosyayı silmek istediğinize emin misiniz?');">
-                                                        @csrf
-                                                        @method('DELETE')
-                                                        <button type="submit" class="btn btn-danger shadow btn-xs sharp me-1" title="Sil">
-                                                            <i class="fa fa-trash"></i>
-                                                        </button>
-                                                    </form>
-                                                    @endif
+	                                                    @endphp
+	                                                    <i class="fa {{ $icon }} fa-lg me-3 text-primary"></i>
+	                                                    <button
+	                                                        type="button"
+	                                                        class="btn btn-link p-0 text-primary fw-bold text-decoration-none js-preview-file"
+	                                                        data-preview-url="{{ route('files.preview', $file->id) }}"
+	                                                        data-download-url="{{ route('files.download', $file->id) }}"
+	                                                        data-file-title="{{ $file->file_name }}"
+	                                                        data-file-ext="{{ $ext }}"
+	                                                        aria-label="{{ $file->title }} dosyasını önizle"
+	                                                    >
+	                                                        {{ $file->title }}
+	                                                    </button>
+	                                                </div>
+	                                            </td>
+	                                            <td>{{ strtoupper($ext) }} Dosyası</td>
+	                                            <td>{{ $file->user->name }}</td>
+	                                            <td>{{ $file->created_at->format('d.m.Y H:i') }}</td>
+	                                            <td>
+	                                                <div class="table-action-group">
+	                                                    <a href="{{ route('files.download', $file->id) }}" class="btn btn-primary shadow btn-xs sharp action-btn" title="İndir" aria-label="{{ $file->title }} dosyasını indir">
+	                                                        <i class="fa fa-download"></i>
+	                                                    </a>
 
-                                                    @if(Auth::user()->is_admin && Auth::user()->hasPermission('delete_files'))
-                                                    <button type="button" class="btn btn-warning shadow btn-xs sharp" title="Taşı" onclick='openMoveModal({{ \Illuminate\Support\Js::from($file->id) }}, {{ \Illuminate\Support\Js::from($file->title) }})'>
-                                                        <i class="fa fa-folder-open"></i>
-                                                    </button>
-                                                    @endif
-                                                </div>
+	                                                    @if(Auth::user()->hasPermission('delete_files') && Auth::id() == $file->user_id)
+	                                                    <form action="{{ route('files.destroy', $file->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Bu dosyayı silmek istediğinize emin misiniz?');">
+	                                                        @csrf
+	                                                        @method('DELETE')
+	                                                        <button type="submit" class="btn btn-danger shadow btn-xs sharp action-btn" title="Sil" aria-label="{{ $file->title }} dosyasını sil">
+	                                                            <i class="fa fa-trash"></i>
+	                                                        </button>
+	                                                    </form>
+	                                                    @endif
+
+	                                                    @if(Auth::user()->is_admin && Auth::user()->hasPermission('delete_files'))
+	                                                    <button
+	                                                        type="button"
+	                                                        class="btn btn-warning shadow btn-xs sharp action-btn js-open-move-modal"
+	                                                        title="Taşı"
+	                                                        data-file-id="{{ $file->id }}"
+	                                                        data-file-title="{{ $file->title }}"
+	                                                        aria-label="{{ $file->title }} dosyasını taşı"
+	                                                    >
+	                                                        <i class="fa fa-folder-open"></i>
+	                                                    </button>
+	                                                    @endif
+	                                                </div>
                                             </td>
                                         </tr>
                                     @endforeach
@@ -254,44 +269,11 @@
 </div>
 
 @push('scripts')
+<script src="{{ asset('js/pages/files-page.js') }}"></script>
 <script>
-    function openMoveModal(fileId, fileTitle) {
-        const modal = new bootstrap.Modal(document.getElementById('moveFileModal'));
-        document.getElementById('moveFileTitle').textContent = fileTitle;
-        document.getElementById('moveFileForm').action = `/files/${fileId}/move`;
-        modal.show();
-    }
-
-    function previewFile(previewUrl, downloadUrl, title, ext) {
-        const modal = new bootstrap.Modal(document.getElementById('previewModal'));
-        document.getElementById('previewTitle').textContent = title;
-        const body = document.getElementById('previewBody');
-        body.innerHTML = '';
-
-        const lowerExt = ext.toLowerCase();
-        if (['jpg', 'jpeg', 'png', 'gif'].includes(lowerExt)) {
-            body.innerHTML = `<img src="${previewUrl}" class="img-fluid" style="max-height: 80vh;">`;
-        } else if (lowerExt === 'pdf') {
-            body.innerHTML = `<iframe src="${previewUrl}" style="width: 100%; height: 80vh;" frameborder="0"></iframe>`;
-        } else {
-            body.innerHTML = `<div class="p-5">
-                                <i class="fa fa-file fa-4x text-muted mb-3"></i>
-                                <p>Bu dosya türü için önizleme kullanılamıyor.</p>
-                                <a href="${downloadUrl}" class="btn btn-primary">İndir</a>
-                              </div>`;
-        }
-
-        modal.show();
-    }
+window.SysPanelFilesPage.init({
+    moveRouteTemplate: '{{ route('files.move', ['id' => '__ID__']) }}'
+});
 </script>
-<style>
-    .folder-card {
-        transition: transform 0.2s;
-    }
-    .folder-card:hover {
-        transform: translateY(-5px);
-        background-color: #f8f9fa;
-    }
-</style>
 @endpush
 @endsection

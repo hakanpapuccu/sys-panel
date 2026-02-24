@@ -17,7 +17,7 @@
         <!--**********************************
            Support ticket button end
         ***********************************-->
-			
+
 
 
 	</div>
@@ -25,54 +25,32 @@
         Main wrapper end
     ***********************************-->
 
-    <!--**********************************
-        Scripts
-    ***********************************-->
-    <!-- Required vendors -->
-    <script src={{asset("vendor/global/global.min.js")}}></script>
-    <script src={{asset("vendor/chart.js/Chart.bundle.min.js")}}></script>
-    <!-- Apex Chart -->
-	<script src={{asset("vendor/apexchart/apexchart.js")}}></script>
-    <script src={{asset("vendor/datatables/js/jquery.dataTables.min.js")}}></script>
-    <script src={{asset("js/plugins-init/datatables.init.js")}}></script>
+	    <!--**********************************
+	        Scripts
+	    ***********************************-->
+	    <!-- Required vendors -->
+	    <script src="{{ asset('vendor/global/global.min.js') }}"></script>
+		<script src="{{ asset('vendor/jquery-nice-select/js/jquery.nice-select.min.js') }}"></script>
+	    <script src="{{ asset('js/custom.js') }}"></script>
+		<script src="{{ asset('js/dlabnav-init.js') }}"></script>
 
-      <!-- Daterangepicker -->
-    <!-- momment js is must -->
-    <script src={{asset("vendor/moment/moment.min.js")}}></script>
-    <script src={{asset("vendor/bootstrap-daterangepicker/daterangepicker.js")}}></script>
-    <!-- clockpicker -->
-    <script src={{asset("vendor/clockpicker/js/bootstrap-clockpicker.min.js")}}></script>
-    <!-- asColorPicker -->
-    <script src={{asset("vendor/jquery-asColor/jquery-asColor.min.js")}}></script>
-    <script src={{asset("vendor/jquery-asGradient/jquery-asGradient.min.js")}}></script>
-    <script src={{asset("vendor/jquery-asColorPicker/js/jquery-asColorPicker.min.js")}}></script>
-    <!-- Material color picker -->
-    <script src={{asset("vendor/bootstrap-material-datetimepicker/js/bootstrap-material-datetimepicker.js")}}></script>
-    <!-- pickdate -->
-    <script src={{asset("vendor/pickadate/picker.js")}}></script>
-    <script src={{asset("vendor/pickadate/picker.time.js")}}></script>
-    <script src={{asset("vendor/pickadate/picker.date.js")}}></script>
+		@if(request()->routeIs('vacations', 'tasks.index'))
+	    <script src="{{ asset('vendor/datatables/js/jquery.dataTables.min.js') }}"></script>
+	    <script src="{{ asset('js/plugins-init/datatables.init.js') }}"></script>
+		@endif
 
+		@if(request()->routeIs('vacations'))
+	    <script src="{{ asset('vendor/clockpicker/js/bootstrap-clockpicker.min.js') }}"></script>
+	    <script src="{{ asset('js/plugins-init/clock-picker-init.js') }}"></script>
+		@endif
 
+	    <script src="{{ asset('vendor/sweetalert2/dist/sweetalert2.min.js') }}"></script>
 
-    <!-- Daterangepicker -->
-    <script src={{asset("js/plugins-init/bs-daterange-picker-init.js")}}></script>
-    <!-- Clockpicker init -->
-    <script src={{asset("js/plugins-init/clock-picker-init.js")}}></script>
-    <!-- asColorPicker init -->
-    <script src={{asset("js/plugins-init/jquery-asColorPicker.init.js")}}></script>
-    <!-- Material color picker init -->
-    <script src={{asset("js/plugins-init/material-date-picker-init.js")}}></script>
-    <!-- Pickdate -->
-    <script src={{asset("js/plugins-init/pickadate-init.js")}}></script>
+@stack('scripts')
 
-	<script src={{asset("vendor/jquery-nice-select/js/jquery.nice-select.min.js")}}></script>
-    <script src={{asset("js/custom.js")}}></script>
-	<script src={{asset("js/dlabnav-init.js")}}></script>
-    <script src="{{ asset('vendor/sweetalert2/dist/sweetalert2.min.js') }}"></script>
-    <script>
-        @if(Session::has('success'))
-            Swal.fire({
+	    <script>
+	        @if(Session::has('success'))
+	            Swal.fire({
                 icon: 'success',
                 title: 'Başarılı',
                 text: "{{ session('success') }}",
@@ -113,11 +91,9 @@
                 title: 'Uyarı',
                 text: "{{ session('warning') }}",
             });
-        @endif
-    </script>
+	        @endif
+	    </script>
 
-@stack('scripts')
-	
-   
-</body>
+
+	</body>
 </html>

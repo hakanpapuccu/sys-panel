@@ -7,10 +7,11 @@
     <div class="container-fluid">
         <div class="row page-titles">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item active"><a href="javascript:void(0)">Toplantı Yönetimi</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Anasayfa</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Toplantı Yönetimi</li>
             </ol>
         </div>
-        
+
         <div class="row">
             <div class="col-lg-12">
                 <div class="card">
@@ -58,21 +59,21 @@
                                                 @else
                                                     <span class="badge badge-success">Planlandı</span>
                                                 @endif
-                                            </td>
-                                            <td>
-                                                <div class="d-flex">
-                                                    @if($meeting->start_url)
-                                                        <a href="{{ $meeting->start_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-success shadow btn-xs sharp me-1" title="Toplantıyı Başlat">
-                                                            <i class="fas fa-video"></i>
-                                                        </a>
-                                                    @endif
-                                                    <form action="{{ route('admin.meetings.destroy', $meeting) }}" method="POST" class="d-inline" onsubmit="return confirm('Bu toplantıyı silmek istediğinize emin misiniz?');">
-                                                        @csrf
-                                                        @method('DELETE')
-                                                        <button type="submit" class="btn btn-danger shadow btn-xs sharp">
-                                                            <i class="fa fa-trash"></i>
-                                                        </button>
-                                                    </form>
+	                                            </td>
+	                                            <td>
+	                                                <div class="table-action-group">
+	                                                    @if($meeting->start_url)
+	                                                        <a href="{{ $meeting->start_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-success shadow btn-xs sharp action-btn" title="Toplantıyı Başlat" aria-label="{{ $meeting->topic }} toplantısını başlat">
+	                                                            <i class="fas fa-video"></i>
+	                                                        </a>
+	                                                    @endif
+	                                                    <form action="{{ route('admin.meetings.destroy', $meeting) }}" method="POST" class="d-inline" onsubmit="return confirm('Bu toplantıyı silmek istediğinize emin misiniz?');">
+	                                                        @csrf
+	                                                        @method('DELETE')
+	                                                        <button type="submit" class="btn btn-danger shadow btn-xs sharp action-btn" aria-label="{{ $meeting->topic }} toplantısını sil">
+	                                                            <i class="fa fa-trash"></i>
+	                                                        </button>
+	                                                    </form>
                                                 </div>
                                             </td>
                                         </tr>

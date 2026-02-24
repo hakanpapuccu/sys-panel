@@ -13,10 +13,10 @@
 	<meta property="og:description" content="Fillow : Fillow Saas Admin  Bootstrap 5 Template" />
 	<meta property="og:image" content="https://fillow.dexignlab.com/xhtml/social-image.png" />
 	<meta name="format-detection" content="telephone=no">
-	
+
 	<!-- PAGE TITLE HERE -->
 	<title>Fillow Saas Admin Dashboard</title>
-	
+
 	<!-- FAVICONS ICON -->
 	<link rel="shortcut icon" type="image/png" href="{{ asset('images/favicon.png') }}" />
 	<link href="{{ asset('vendor/jquery-nice-select/css/nice-select.css') }}" rel="stylesheet">
@@ -70,7 +70,7 @@
         <!--**********************************
             Nav header end
         ***********************************-->
-		
+
 		<!--**********************************
             Chat box start
         ***********************************-->
@@ -80,8 +80,8 @@
         ***********************************-->
 
 
-		
-		
+
+
         <!--**********************************
             Header start
         ***********************************-->
@@ -93,20 +93,20 @@
 							<div class="dashboard_bar">
                                 @yield('header', 'Dashboard')
                             </div>
-							
+
                         </div>
                         <ul class="navbar-nav header-right">
-							<li class="nav-item d-flex align-items-center">
-								<div class="input-group search-area">
-									<input type="text" class="form-control" placeholder="Search here...">
-									<span class="input-group-text"><a href="javascript:void(0)"><i class="flaticon-381-search-2"></i></a></span>
-								</div>
-							</li>
-							
-							<li class="nav-item dropdown  header-profile">
-								<a class="nav-link" href="javascript:void(0);" role="button" data-bs-toggle="dropdown">
-									<img src="{{ asset('images/user.jpg') }}" width="56" alt=""/>
-								</a>
+								<li class="nav-item d-flex align-items-center">
+									<div class="input-group search-area">
+										<input type="text" class="form-control" placeholder="Search here...">
+										<span class="input-group-text"><button type="button" class="btn btn-link p-0 border-0" aria-label="Ara"><i class="flaticon-381-search-2"></i></button></span>
+									</div>
+								</li>
+
+								<li class="nav-item dropdown  header-profile">
+									<button class="nav-link btn btn-link border-0 p-0" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Kullanıcı menüsü">
+										<img src="{{ asset('images/user.jpg') }}" width="56" alt=""/>
+									</button>
 								<div class="dropdown-menu dropdown-menu-end">
 									<a href="{{ route('profile.edit') }}" class="dropdown-item ai-icon">
 										<svg id="icon-user1" xmlns="http://www.w3.org/2000/svg" class="text-primary" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
@@ -126,7 +126,7 @@
 				</nav>
 			</div>
 		</div>
-                    
+
         <!--**********************************
             Header end ti-comment-alt
         ***********************************-->
@@ -146,7 +146,7 @@
 						</ul>
 
                     </li>
-                    
+
                     @if(Auth::user()->is_admin)
                     <li><a class="has-arrow " href="javascript:void()" aria-expanded="false">
                             <i class="fas fa-users"></i>
@@ -157,7 +157,7 @@
                         </ul>
                     </li>
                     @endif
-					
+
                     <li><a class="has-arrow " href="javascript:void()" aria-expanded="false">
 						<i class="fas fa-info-circle"></i>
 							<span class="nav-text">Apps</span>
@@ -179,9 +179,9 @@
 						<div class="profile-button">
 							<i class="fas fa-caret-down scale5 text-light"></i>
 						</div>
-					</div>	
+					</div>
 				</div>
-				
+
 				<div class="copyright">
 					<p><strong>Fillow Saas Admin</strong> © 2021 All Rights Reserved</p>
 					<p class="fs-12">Made with <span class="heart"></span> by DexignLabs</p>
@@ -217,12 +217,12 @@
             Footer end
         ***********************************-->
 
-        
+
     </div>
     <!--**********************************
         Main wrapper end
     ***********************************-->
-	
+
     <!--**********************************
         Scripts
     ***********************************-->
@@ -234,6 +234,6 @@
 	<script src="{{ asset('vendor/lightgallery/js/lightgallery-all.min.js') }}"></script>
     <script src="{{ asset('js/custom.js') }}"></script>
 	<script src="{{ asset('js/dlabnav-init.js') }}"></script>
-	
+
 </body>
 </html>

@@ -8,10 +8,10 @@
         <div class="row page-titles">
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="{{ route('admin.meetings.index') }}">Toplantı Yönetimi</a></li>
-                <li class="breadcrumb-item active"><a href="javascript:void(0)">Yeni Toplantı</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Yeni Toplantı</li>
             </ol>
         </div>
-        
+
         <div class="row">
             <div class="col-lg-12">
                 <div class="card">

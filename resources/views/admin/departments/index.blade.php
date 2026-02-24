@@ -7,10 +7,11 @@
     <div class="container-fluid">
         <div class="row page-titles">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item active"><a href="javascript:void(0)">Departman Yönetimi</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Anasayfa</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Departman Yönetimi</li>
             </ol>
         </div>
-        
+
         <div class="row">
             <div class="col-lg-12">
                 <div class="card">
@@ -50,19 +51,19 @@
                                         <tr>
                                             <td>{{ $department->name }}</td>
                                             <td>{{ Str::limit($department->description, 50) }}</td>
-                                            <td><span class="badge badge-info">{{ $department->users_count }}</span></td>
-                                            <td>
-                                                <div class="d-flex">
-                                                    <a href="{{ route('admin.departments.edit', $department) }}" class="btn btn-primary shadow btn-xs sharp me-1">
-                                                        <i class="fas fa-pencil-alt"></i>
-                                                    </a>
-                                                    <form action="{{ route('admin.departments.destroy', $department) }}" method="POST" class="d-inline" onsubmit="return confirm('Bu departmanı silmek istediğinize emin misiniz?');">
-                                                        @csrf
-                                                        @method('DELETE')
-                                                        <button type="submit" class="btn btn-danger shadow btn-xs sharp">
-                                                            <i class="fa fa-trash"></i>
-                                                        </button>
-                                                    </form>
+	                                            <td><span class="badge badge-info">{{ $department->users_count }}</span></td>
+	                                            <td>
+	                                                <div class="table-action-group">
+	                                                    <a href="{{ route('admin.departments.edit', $department) }}" class="btn btn-primary shadow btn-xs sharp action-btn" aria-label="{{ $department->name }} departmanını düzenle">
+	                                                        <i class="fas fa-pencil-alt"></i>
+	                                                    </a>
+	                                                    <form action="{{ route('admin.departments.destroy', $department) }}" method="POST" class="d-inline" onsubmit="return confirm('Bu departmanı silmek istediğinize emin misiniz?');">
+	                                                        @csrf
+	                                                        @method('DELETE')
+	                                                        <button type="submit" class="btn btn-danger shadow btn-xs sharp action-btn" aria-label="{{ $department->name }} departmanını sil">
+	                                                            <i class="fa fa-trash"></i>
+	                                                        </button>
+	                                                    </form>
                                                 </div>
                                             </td>
                                         </tr>

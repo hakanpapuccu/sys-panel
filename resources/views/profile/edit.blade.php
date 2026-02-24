@@ -31,8 +31,8 @@
     <div class="container-fluid">
         <div class="row page-titles">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item active"><a href="javascript:void(0)">Uygulama</a></li>
-                <li class="breadcrumb-item"><a href="javascript:void(0)">Profil</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Anasayfa</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Profil</li>
             </ol>
         </div>
         <!-- row -->
@@ -60,7 +60,7 @@
                                     <p>E-posta</p>
                                 </div>
                                 <div class="dropdown ms-auto">
-                                    <a href="#" class="btn btn-primary light sharp" data-bs-toggle="dropdown" aria-expanded="true"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="18px" height="18px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></a>
+                                    <button type="button" class="btn btn-primary light sharp" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Profil işlemleri"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="18px" height="18px" viewBox="0 0 24 24" version="1.1"><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><rect x="0" y="0" width="24" height="24"></rect><circle fill="#000000" cx="5" cy="12" r="2"></circle><circle fill="#000000" cx="12" cy="12" r="2"></circle><circle fill="#000000" cx="19" cy="12" r="2"></circle></g></svg></button>
                                     <ul class="dropdown-menu dropdown-menu-end">
                                         <li class="dropdown-item"><i class="fa fa-user-circle text-primary me-2"></i> Profili Görüntüle</li>
                                         <li class="dropdown-item"><i class="fa fa-users text-primary me-2"></i> Arkadaşlara Ekle</li>
@@ -81,7 +81,7 @@
                         <div class="pt-3">
                             <div class="settings-form">
                                 <h4 class="text-primary">Hesap Ayarları</h4>
-                                
+
                                 @if (session('status') === 'profile-updated')
                                     <div class="alert alert-success">
                                         {{ __('Profil başarıyla güncellendi.') }}
@@ -165,7 +165,7 @@
                                 </form>
 
                                 <h4 class="text-primary mt-4">Şifre Güncelle</h4>
-                                
+
                                 @if (session('status') === 'password-updated')
                                     <div class="alert alert-success">
                                         {{ __('Şifre başarıyla güncellendi.') }}

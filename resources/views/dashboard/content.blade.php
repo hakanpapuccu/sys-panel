@@ -5,7 +5,7 @@
 @section('content')
 <div class="content-body">
     <div class="container-fluid">
-        
+
         <!-- Row 1: Key Metrics -->
         <div class="row">
             <!-- Pending Vacations / Tasks -->
@@ -149,8 +149,8 @@
         <!-- Row 4: Latest Announcements & Recent Vacations -->
         <div class="row">
             <!-- Latest Announcements -->
-            <div class="col-xl-6 col-lg-12">
-                <div class="card">
+	            <div class="{{ Auth::user()->hasPermission('access_chat') ? 'col-xl-6' : 'col-xl-12' }} col-lg-12">
+	                <div class="card">
                     <div class="card-header border-0">
                         <div>
                             <h4 class="fs-20 font-w700">Son Duyurular</h4>
@@ -261,27 +261,29 @@
                 </div>
             </div>
 
-            <!-- General Chat -->
-            <div class="col-xl-6">
-                <div class="card">
-                    <div class="card-header border-0">
-                        <h4 class="fs-20 font-w700">Genel Sohbet</h4>
-                    </div>
-                    <div class="card-body">
-                        <div id="dashboard-general-messages" style="height: 400px; overflow-y: auto; background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 15px;">
-                            <!-- Messages will be loaded here -->
-                        </div>
-                        <form id="dashboard-chat-form">
-                            <div class="input-group">
-                                <input type="text" class="form-control" id="dashboard-chat-input" placeholder="Mesajınızı yazın..." required>
-                                <button class="btn btn-primary" type="submit">
-                                    <i class="fa fa-paper-plane"></i>
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
+	            <!-- General Chat -->
+	            @if(Auth::user()->hasPermission('access_chat'))
+	            <div class="col-xl-6">
+	                <div class="card">
+	                    <div class="card-header border-0">
+	                        <h4 class="fs-20 font-w700">Genel Sohbet</h4>
+	                    </div>
+	                    <div class="card-body">
+	                        <div id="dashboard-general-messages" class="dashboard-chat-panel">
+	                            <!-- Messages will be loaded here -->
+	                        </div>
+	                        <form id="dashboard-chat-form">
+	                            <div class="input-group">
+	                                <input type="text" class="form-control" id="dashboard-chat-input" placeholder="Mesajınızı yazın..." required>
+	                                <button class="btn btn-primary" type="submit" aria-label="Mesaj gönder">
+	                                    <i class="fa fa-paper-plane"></i>
+	                                </button>
+	                            </div>
+	                        </form>
+	                    </div>
+	                </div>
+	            </div>
+	            @endif
         </div>
 
         <!-- Row 6: Calendar -->
@@ -298,100 +300,20 @@
             </div>
         </div>
 
-        @push('scripts')
-        <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                // Calendar Initialization
-                var calendarEl = document.getElementById('dashboard-calendar');
-                var calendar = new FullCalendar.Calendar(calendarEl, {
-                    initialView: 'dayGridMonth',
-                    locale: 'tr',
-                    headerToolbar: {
-                        left: 'prev,next',
-                        center: 'title',
-                        right: ''
-                    },
-                    height: 500,
-                    events: '{{ route("calendar.events") }}'
-                });
-                calendar.render();
-
-                // Chat Initialization
-                loadDashboardMessages();
-                setInterval(loadDashboardMessages, 3000);
-
-                // Chat Form Submit
-                document.getElementById('dashboard-chat-form').addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    const input = document.getElementById('dashboard-chat-input');
-                    const message = input.value.trim();
-                    
-                    if (!message) return;
-
-                    fetch('/chat/send', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                        },
-                        body: JSON.stringify({
-                            message: message,
-                            is_general: true
-                        })
-                    })
-                    .then(response => response.json())
-                    .then(() => {
-                        input.value = '';
-                        loadDashboardMessages();
-                    })
-                    .catch(error => console.error('Error:', error));
-                });
-            });
-
-            function loadDashboardMessages() {
-                const container = document.getElementById('dashboard-general-messages');
-                const currentUserId = {{ auth()->id() }};
-
-                fetch('/chat/general')
-                    .then(response => response.json())
-                    .then(messages => {
-                        container.innerHTML = '';
-                        messages.forEach(message => {
-                            const isSender = message.sender_id === currentUserId;
-                            const messageDiv = document.createElement('div');
-                            messageDiv.className = `d-flex justify-content-${isSender ? 'end' : 'start'} mb-2`;
-                            
-                            const senderName = message.sender ? message.sender.name : 'Bilinmeyen';
-                            
-                            messageDiv.innerHTML = `
-                                <div class="${isSender ? 'bg-primary text-white' : 'bg-white text-dark'}" style="max-width: 80%; padding: 8px 12px; border-radius: 15px; box-shadow: 0 1px 2px rgba(0,0,0,0.1);">
-                                    ${!isSender ? `<small class="fw-bold d-block mb-1" style="font-size: 0.7rem;">${escapeHtml(senderName)}</small>` : ''}
-                                    <p class="mb-0" style="font-size: 0.9rem;">${escapeHtml(message.message)}</p>
-                                    <small class="${isSender ? 'text-white-50' : 'text-muted'} d-block text-end mt-1" style="font-size: 0.65rem;">
-                                        ${formatTime(message.created_at)}
-                                    </small>
-                                </div>
-                            `;
-                            container.appendChild(messageDiv);
-                        });
-                        container.scrollTop = container.scrollHeight;
-                    })
-                    .catch(error => console.error('Error:', error));
-            }
-
-            function formatTime(timestamp) {
-                const date = new Date(timestamp);
-                return date.toLocaleTimeString('tr-TR', {hour: '2-digit', minute: '2-digit'});
-            }
-
-            function escapeHtml(text) {
-                const div = document.createElement('div');
-                div.textContent = text;
-                return div.innerHTML;
-            }
-        </script>
-        @endpush
+	        @push('scripts')
+	        <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+	        <script src="{{ asset('js/pages/dashboard-content.js') }}"></script>
+	        <script>
+	            window.SysPanelDashboardContent.init({
+	                currentUserId: {{ auth()->id() }},
+	                routes: {
+	                    calendarEvents: '{{ route('calendar.events') }}',
+	                    generalMessages: '{{ route('chat.general') }}',
+	                    sendMessage: '{{ route('chat.send') }}'
+	                }
+	            });
+	        </script>
+	        @endpush
 
     </div>
 </div>
