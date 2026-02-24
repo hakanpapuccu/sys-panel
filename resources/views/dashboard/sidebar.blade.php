@@ -81,6 +81,14 @@
                     </li>
                     @endif
 
+                    @if(Auth::user()->is_admin)
+                    <li><a class="" href="{{route('admin.reports.index')}}" aria-expanded="false">
+                            <i class="fas fa-chart-line"></i>
+                            <span class="nav-text">Raporlama</span>
+                        </a>
+                    </li>
+                    @endif
+
                     @if(Auth::user()->hasPermission('manage_roles'))
                     <li><a class="" href="{{route('admin.roles.index')}}" aria-expanded="false">
                             <i class="fas fa-user-tag"></i>

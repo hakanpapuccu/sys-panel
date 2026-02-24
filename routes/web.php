@@ -12,6 +12,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PollController;
 use App\Http\Controllers\PollResponseController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ReportsController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\TaskController;
@@ -54,6 +55,10 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('meetings/create', [MeetingController::class, 'create'])->middleware('permission:create_meetings')->name('meetings.create');
     Route::post('meetings', [MeetingController::class, 'store'])->middleware('permission:create_meetings')->name('meetings.store');
     Route::delete('meetings/{meeting}', [MeetingController::class, 'destroy'])->middleware('permission:delete_meetings')->name('meetings.destroy');
+
+    // Reports
+    Route::get('reports', [ReportsController::class, 'index'])->name('reports.index');
+    Route::get('reports/export', [ReportsController::class, 'export'])->name('reports.export');
 
     // Platform Settings
     Route::middleware('permission:manage_platform_settings')->group(function () {
