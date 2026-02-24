@@ -67,11 +67,14 @@
 
                                 <div class="col-lg-12 mb-3">
                                     <div class="form-check mb-3">
-                                        <input class="form-check-input" type="checkbox" name="is_admin" id="is_admin">
+                                        <input class="form-check-input" type="checkbox" name="is_admin" id="is_admin" value="1" {{ old('is_admin') ? 'checked' : '' }}>
                                         <label class="form-check-label" for="is_admin">
                                             Süper Admin Yetkisi Ver (Tüm yetkilere sahip olur)
                                         </label>
                                     </div>
+                                    @error('is_admin')
+                                        <div class="text-danger small mb-2">{{ $message }}</div>
+                                    @enderror
 
                                     <label class="form-label">Roller</label>
                                     <div class="row">

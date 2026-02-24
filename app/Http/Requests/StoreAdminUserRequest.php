@@ -8,6 +8,13 @@ use Illuminate\Validation\Rules\Password;
 
 class StoreAdminUserRequest extends FormRequest
 {
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'is_admin' => $this->boolean('is_admin'),
+        ]);
+    }
+
     public function authorize(): bool
     {
         $user = $this->user();
