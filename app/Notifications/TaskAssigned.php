@@ -2,11 +2,9 @@
 
 namespace App\Notifications;
 
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
-use Illuminate\Notifications\Notification;
 use App\Models\Task;
+use Illuminate\Bus\Queueable;
+use Illuminate\Notifications\Notification;
 
 class TaskAssigned extends Notification
 {
@@ -41,7 +39,7 @@ class TaskAssigned extends Notification
     {
         return [
             'task_id' => $this->task->id,
-            'message' => 'Size yeni bir görev atandı: ' . $this->task->title,
+            'message' => 'Size yeni bir görev atandı: '.$this->task->title,
             'url' => route('tasks.show', $this->task->id),
         ];
     }

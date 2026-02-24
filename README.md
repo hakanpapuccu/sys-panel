@@ -30,7 +30,7 @@ Projeyi yerel ortamınızda çalıştırmak için aşağıdaki adımları izleyi
 1.  **Projeyi İndirin:**
     ```bash
     git clone [repo-url]
-    cd izin
+    cd sys-panel
     ```
 
 2.  **PHP Bağımlılıklarını Yükleyin:**
@@ -93,6 +93,26 @@ Projeyi yerel ortamınızda çalıştırmak için aşağıdaki adımları izleyi
     $user->save();
     exit
     ```
+
+## Kalite ve Güvenlik Kontrolleri
+
+Lokal kalite kontrolleri:
+
+```bash
+composer run lint
+composer run analyse
+composer run test
+composer run quality
+```
+
+Test ortamı için `.env.testing` dosyası hazırdır. CI tarafında:
+
+* `.github/workflows/quality.yml` ile `Pint + PHPStan + PHPUnit`
+* `.github/workflows/secret-scan.yml` ile secret taraması
+
+Operasyonel secret yönetimi ve rotasyon adımları:
+
+* `docs/security-operations.md`
 
 ## Katkıda Bulunma
 

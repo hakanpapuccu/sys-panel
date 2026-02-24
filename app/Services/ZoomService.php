@@ -2,16 +2,19 @@
 
 namespace App\Services;
 
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Cache;
 use App\Models\Setting;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
 use Throwable;
 
 class ZoomService
 {
     protected $accountId;
+
     protected $clientId;
+
     protected $clientSecret;
+
     protected $baseUrl = 'https://api.zoom.us/v2';
 
     public function __construct()
@@ -41,6 +44,7 @@ class ZoomService
         if ($response->successful()) {
             $data = $response->json();
             Cache::put('zoom_access_token', $data['access_token'], $data['expires_in'] - 60);
+
             return $data['access_token'];
         }
 
@@ -48,6 +52,7 @@ class ZoomService
             'status' => $response->status(),
             'error' => $response->json('reason'),
         ]);
+
         return null;
     }
 
@@ -84,6 +89,7 @@ class ZoomService
             'code' => $response->json('code'),
             'message' => $response->json('message'),
         ]);
+
         return null;
     }
 

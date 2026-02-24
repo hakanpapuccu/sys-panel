@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class PermissionSeeder extends Seeder
@@ -17,7 +16,7 @@ class PermissionSeeder extends Seeder
             ['name' => 'view_vacations', 'label' => 'İzinleri Görüntüle', 'module' => 'İzinler'],
             ['name' => 'create_vacations', 'label' => 'İzin Oluştur', 'module' => 'İzinler'],
             ['name' => 'approve_vacations', 'label' => 'İzin Onayla/Reddet', 'module' => 'İzinler'],
-            
+
             // Tasks
             ['name' => 'view_tasks', 'label' => 'Görevleri Görüntüle', 'module' => 'Görevler'],
             ['name' => 'create_tasks', 'label' => 'Görev Oluştur', 'module' => 'Görevler'],
@@ -26,7 +25,7 @@ class PermissionSeeder extends Seeder
 
             // Chat
             ['name' => 'access_chat', 'label' => 'Sohbete Erişim', 'module' => 'Sohbet'],
-            
+
             // Files
             ['name' => 'view_files', 'label' => 'Dosyaları Görüntüle', 'module' => 'Dosyalar'],
             ['name' => 'upload_files', 'label' => 'Dosya Yükle', 'module' => 'Dosyalar'],
@@ -37,7 +36,7 @@ class PermissionSeeder extends Seeder
             ['name' => 'create_announcements', 'label' => 'Duyuru Oluştur', 'module' => 'Duyurular'],
             ['name' => 'edit_announcements', 'label' => 'Duyuru Düzenle', 'module' => 'Duyurular'],
             ['name' => 'delete_announcements', 'label' => 'Duyuru Sil', 'module' => 'Duyurular'],
-            
+
             // Polls
             ['name' => 'view_polls', 'label' => 'Anketleri Görüntüle', 'module' => 'Anketler'],
             ['name' => 'create_polls', 'label' => 'Anket Oluştur', 'module' => 'Anketler'],
@@ -48,7 +47,7 @@ class PermissionSeeder extends Seeder
             ['name' => 'create_users', 'label' => 'Kullanıcı Oluştur', 'module' => 'Kullanıcılar'],
             ['name' => 'edit_users', 'label' => 'Kullanıcı Düzenle', 'module' => 'Kullanıcılar'],
             ['name' => 'delete_users', 'label' => 'Kullanıcı Sil', 'module' => 'Kullanıcılar'],
-            
+
             // Roles
             ['name' => 'manage_roles', 'label' => 'Rolleri Yönet', 'module' => 'Ayarlar'],
 

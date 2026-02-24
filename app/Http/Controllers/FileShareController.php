@@ -2,11 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Http\Requests\MoveFileRequest;
+use App\Http\Requests\StoreFileShareRequest;
+use App\Http\Requests\StoreFolderRequest;
 use App\Models\FileShare;
+use App\Models\Folder;
+use App\Support\Audit;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
-use App\Models\Folder;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class FileShareController extends Controller
 {
@@ -55,12 +60,10 @@ class FileShareController extends Controller
         return view('files.create');
     }
 
-    public function storeFolder(Request $request)
+    public function storeFolder(StoreFolderRequest $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'parent_id' => 'nullable|exists:folders,id',
-        ]);
+        $this->authorize('createFolder', FileShare::class);
+        $validated = $request->validated();
 
         if (! Auth::user()->is_admin && ! empty($validated['parent_id'])) {
             $ownsParent = Folder::whereKey($validated['parent_id'])
@@ -72,23 +75,25 @@ class FileShareController extends Controller
             }
         }
 
-        Folder::create([
+        $folder = Folder::create([
             'name' => $validated['name'],
             'parent_id' => $validated['parent_id'] ?? null,
             'user_id' => Auth::id(),
         ]);
 
+        Audit::record('files.folder.created', $folder, [], [
+            'name' => $folder->name,
+            'parent_id' => $folder->parent_id,
+            'user_id' => $folder->user_id,
+        ]);
+
         return back()->with('success', 'Klasör oluşturuldu.');
     }
 
-    public function store(Request $request)
+    public function store(StoreFileShareRequest $request)
     {
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'required|string',
-            'file' => 'required|file|max:10240|mimes:pdf,doc,docx,xls,xlsx,png,jpg,jpeg,gif,txt,csv,zip',
-            'folder_id' => 'nullable|exists:folders,id',
-        ]);
+        $this->authorize('create', FileShare::class);
+        $validated = $request->validated();
 
         if (! Auth::user()->is_admin && ! empty($validated['folder_id'])) {
             $ownsFolder = Folder::whereKey($validated['folder_id'])
@@ -102,15 +107,23 @@ class FileShareController extends Controller
 
         $file = $request->file('file');
         $fileName = pathinfo($file->getClientOriginalName(), PATHINFO_BASENAME);
-        $filePath = $file->store('files', 'public');
+        $filePath = $file->store('files', 'private');
 
-        FileShare::create([
+        $uploadedFile = FileShare::create([
             'user_id' => Auth::id(),
             'folder_id' => $validated['folder_id'] ?? null,
             'title' => $validated['title'],
             'description' => $validated['description'],
             'file_path' => $filePath,
+            'storage_disk' => 'private',
             'file_name' => $fileName,
+        ]);
+
+        Audit::record('files.uploaded', $uploadedFile, [], [
+            'title' => $uploadedFile->title,
+            'folder_id' => $uploadedFile->folder_id,
+            'storage_disk' => $uploadedFile->storage_disk,
+            'file_path' => $uploadedFile->file_path,
         ]);
 
         return back()->with('success', 'Dosya başarıyla yüklendi.');
@@ -119,49 +132,112 @@ class FileShareController extends Controller
     public function download($id)
     {
         $file = FileShare::findOrFail($id);
+        $this->authorize('download', $file);
 
-        if (Auth::id() !== $file->user_id && ! Auth::user()->is_admin) {
-            abort(403, 'Bu dosyayı indirme yetkiniz yok.');
-        }
-        
-        if (Storage::disk('public')->exists($file->file_path)) {
-            return Storage::disk('public')->download($file->file_path, $file->file_name);
+        $disk = $this->resolveStorageDisk($file);
+        if (! $disk || ! Storage::disk($disk)->exists($file->file_path)) {
+            return back()->with('error', 'Dosya bulunamadı.');
         }
 
-        return back()->with('error', 'Dosya bulunamadı.');
+        return Storage::disk($disk)->download($file->file_path, $file->file_name);
+    }
+
+    public function preview($id): StreamedResponse
+    {
+        $file = FileShare::findOrFail($id);
+        $this->authorize('preview', $file);
+
+        $disk = $this->resolveStorageDisk($file);
+        if (! $disk || ! Storage::disk($disk)->exists($file->file_path)) {
+            abort(404, 'Dosya bulunamadı.');
+        }
+
+        $ext = strtolower((string) pathinfo($file->file_name, PATHINFO_EXTENSION));
+        $previewableExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'pdf', 'txt', 'csv'];
+        if (! in_array($ext, $previewableExtensions, true)) {
+            abort(404, 'Bu dosya türü için önizleme desteklenmiyor.');
+        }
+
+        $stream = Storage::disk($disk)->readStream($file->file_path);
+        if (! is_resource($stream)) {
+            abort(404, 'Dosya okunamadı.');
+        }
+
+        $mimeType = Storage::disk($disk)->mimeType($file->file_path) ?: 'application/octet-stream';
+
+        return response()->stream(function () use ($stream): void {
+            fpassthru($stream);
+            fclose($stream);
+        }, 200, [
+            'Content-Type' => $mimeType,
+            'Content-Disposition' => 'inline; filename="'.addslashes($file->file_name).'"',
+            'Cache-Control' => 'private, max-age=300',
+            'X-Content-Type-Options' => 'nosniff',
+        ]);
     }
 
     public function destroy($id)
     {
         $file = FileShare::findOrFail($id);
+        $this->authorize('delete', $file);
+        $oldValues = [
+            'title' => $file->title,
+            'folder_id' => $file->folder_id,
+            'storage_disk' => $file->storage_disk,
+            'file_path' => $file->file_path,
+            'user_id' => $file->user_id,
+        ];
 
-        if (Auth::id() !== $file->user_id && !Auth::user()->is_admin) {
-            return back()->with('error', 'Bu dosyayı silme yetkiniz yok.');
-        }
-
-        if (Storage::disk('public')->exists($file->file_path)) {
-            Storage::disk('public')->delete($file->file_path);
+        $disk = $this->resolveStorageDisk($file);
+        if ($disk && Storage::disk($disk)->exists($file->file_path)) {
+            Storage::disk($disk)->delete($file->file_path);
         }
 
         $file->delete();
+        Audit::record('files.deleted', null, $oldValues, ['deleted_file_id' => $file->id]);
 
         return back()->with('success', 'Dosya başarıyla silindi.');
     }
 
-    public function move(Request $request, $id)
+    public function move(MoveFileRequest $request, $id)
     {
-        if (!Auth::user()->is_admin) {
-            return back()->with('error', 'Bu işlem için yetkiniz yok.');
-        }
-
-        $validated = $request->validate([
-            'target_folder_id' => 'nullable|exists:folders,id',
-        ]);
-
         $file = FileShare::findOrFail($id);
+        $this->authorize('move', $file);
+        $oldValues = [
+            'folder_id' => $file->folder_id,
+        ];
+        $validated = $request->validated();
         $file->folder_id = $validated['target_folder_id'] ?? null;
         $file->save();
+        Audit::record('files.moved', $file, $oldValues, [
+            'folder_id' => $file->folder_id,
+        ]);
 
         return back()->with('success', 'Dosya başarıyla taşındı.');
+    }
+
+    private function resolveStorageDisk(FileShare $file): ?string
+    {
+        $candidates = array_filter([
+            $file->storage_disk,
+            'private',
+            'public',
+        ]);
+
+        foreach (array_unique($candidates) as $disk) {
+            if (! config("filesystems.disks.{$disk}")) {
+                continue;
+            }
+
+            if (Storage::disk($disk)->exists($file->file_path)) {
+                return $disk;
+            }
+        }
+
+        if ($file->storage_disk && config("filesystems.disks.{$file->storage_disk}")) {
+            return $file->storage_disk;
+        }
+
+        return null;
     }
 }

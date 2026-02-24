@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreTaskRequest;
+use App\Http\Requests\UpdateTaskRequest;
 use App\Models\Task;
 use App\Models\User;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class TaskController extends Controller
@@ -21,27 +22,22 @@ class TaskController extends Controller
                 ->orderBy('deadline')
                 ->get();
         }
-        
+
         return view('tasks.index', compact('tasks'));
     }
 
     public function create()
     {
         $users = User::all();
+
         return view('tasks.create', compact('users'));
     }
 
-    public function store(Request $request)
+    public function store(StoreTaskRequest $request)
     {
         $this->authorize('create', Task::class);
 
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'deadline' => 'nullable|date',
-            'priority' => 'required|in:low,medium,high',
-            'assigned_to_id' => 'required|exists:users,id',
-        ]);
+        $validated = $request->validated();
 
         $validated['description'] = $this->sanitizeDescription($validated['description'] ?? null);
         $validated['created_by_id'] = Auth::id();
@@ -53,12 +49,14 @@ class TaskController extends Controller
         $task->assignedTo->notify(new \App\Notifications\TaskAssigned($task));
 
         session()->flash('success', 'Görev başarıyla oluşturuldu');
+
         return redirect()->route('tasks.index');
     }
 
     public function show(Task $task)
     {
         $this->authorize('view', $task);
+
         return view('tasks.show', compact('task'));
     }
 
@@ -66,33 +64,26 @@ class TaskController extends Controller
     {
         $this->authorize('update', $task);
         $users = User::all();
+
         return view('tasks.edit', compact('task', 'users'));
     }
 
-    public function update(Request $request, Task $task)
+    public function update(UpdateTaskRequest $request, Task $task)
     {
         $this->authorize('update', $task);
 
-        if (!Auth::user()->is_admin) {
-            $validated = $request->validate([
-                'status' => 'required|in:pending,in_progress,completed',
-            ]);
+        if (! Auth::user()->is_admin) {
+            $validated = $request->validated();
             // Prevent non-admins from changing other fields
             $task->update(['status' => $validated['status']]);
         } else {
-            $validated = $request->validate([
-                'title' => 'required|string|max:255',
-                'description' => 'nullable|string',
-                'deadline' => 'nullable|date',
-                'priority' => 'required|in:low,medium,high',
-                'status' => 'required|in:pending,in_progress,completed',
-                'assigned_to_id' => 'required|exists:users,id',
-            ]);
+            $validated = $request->validated();
             $validated['description'] = $this->sanitizeDescription($validated['description'] ?? null);
             $task->update($validated);
         }
 
         session()->flash('success', 'Görev güncellendi');
+
         return redirect()->route('tasks.index');
     }
 
@@ -101,6 +92,7 @@ class TaskController extends Controller
         $this->authorize('delete', $task);
         $task->delete();
         session()->flash('success', 'Görev silindi');
+
         return redirect()->route('tasks.index');
     }
 

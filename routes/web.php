@@ -1,25 +1,24 @@
 <?php
 
-use App\Http\Controllers\AnnouncementController;
-use App\Http\Controllers\CommentController;
-use App\Http\Controllers\ProfileController;
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\VacationsController;
 use App\Http\Controllers\AdminUserController;
-use App\Http\Controllers\FileShareController;
+use App\Http\Controllers\AnnouncementController;
+use App\Http\Controllers\BusinessEventController;
+use App\Http\Controllers\ChatController;
+use App\Http\Controllers\CommentController;
 use App\Http\Controllers\DepartmentController;
+use App\Http\Controllers\FileShareController;
 use App\Http\Controllers\MeetingController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PollController;
 use App\Http\Controllers\PollResponseController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\TaskController;
-use App\Http\Controllers\BusinessEventController;
-use App\Http\Controllers\ChatController;
+use App\Http\Controllers\VacationsController;
+use Illuminate\Support\Facades\Route;
 
-
-Route::get('/',  [VacationsController::class, 'show'])->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/', [VacationsController::class, 'show'])->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     // Users
@@ -63,17 +62,16 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     });
 });
 
-
 Route::middleware('auth')->group(function () {
     Route::middleware('permission:view_polls')->get('/polls', [PollResponseController::class, 'index'])->name('polls.index');
     Route::middleware('permission:view_polls')->get('/polls/{poll}', [PollResponseController::class, 'show'])->name('polls.show');
     Route::middleware('permission:vote_polls')->post('/polls/{poll}', [PollResponseController::class, 'store'])->name('polls.store');
-    
+
     Route::get('/profile/{user?}', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::post('/profile/upload-image', [ProfileController::class, 'uploadImage'])->name('profile.upload-image');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-    
+
     // Announcements
     Route::get('/announcements', [AnnouncementController::class, 'index'])->middleware('permission:view_announcements')->name('announcements.index');
     Route::post('/announcements', [AnnouncementController::class, 'store'])->middleware('permission:create_announcements')->name('announcements.store');
@@ -81,7 +79,7 @@ Route::middleware('auth')->group(function () {
     Route::put('/announcements/{announcement}', [AnnouncementController::class, 'update'])->middleware('permission:edit_announcements')->name('announcements.update');
     Route::delete('/announcements/{announcement}', [AnnouncementController::class, 'destroy'])->middleware('permission:delete_announcements')->name('announcements.destroy');
     Route::post('comments', [CommentController::class, 'store'])->middleware('permission:view_announcements')->name('comments.store');
-    
+
     // Chat Routes
     Route::middleware('permission:access_chat')->group(function () {
         Route::get('/chat', [ChatController::class, 'index'])->name('chat.index');
@@ -96,6 +94,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/files', [FileShareController::class, 'index'])->name('files.index');
         Route::get('/files/create', [FileShareController::class, 'create'])->name('files.create');
         Route::get('/files/{id}/download', [FileShareController::class, 'download'])->name('files.download');
+        Route::get('/files/{id}/preview', [FileShareController::class, 'preview'])->name('files.preview');
     });
     Route::middleware('permission:upload_files')->group(function () {
         Route::post('/files/folder', [FileShareController::class, 'storeFolder'])->name('files.storeFolder');
@@ -109,7 +108,7 @@ Route::middleware('auth')->group(function () {
     // Business Calendar Routes
     Route::get('/calendar', [BusinessEventController::class, 'index'])->name('calendar.index');
     Route::get('/calendar/events', [BusinessEventController::class, 'getEvents'])->name('calendar.events');
-    
+
     // Meeting Routes
     Route::middleware('permission:view_meetings')->get('/meetings', [MeetingController::class, 'index'])->name('meetings.index');
 

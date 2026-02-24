@@ -2,18 +2,22 @@
 
 namespace App\Services;
 
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Log;
 use App\Models\Setting;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Throwable;
 
 class TeamsService
 {
     protected $tenantId;
+
     protected $clientId;
+
     protected $clientSecret;
+
     protected $userId;
+
     protected $baseUrl = 'https://graph.microsoft.com/v1.0';
 
     public function __construct()
@@ -44,6 +48,7 @@ class TeamsService
         if ($response->successful()) {
             $data = $response->json();
             Cache::put('teams_access_token', $data['access_token'], $data['expires_in'] - 60);
+
             return $data['access_token'];
         }
 
@@ -52,6 +57,7 @@ class TeamsService
             'error' => $response->json('error'),
             'error_description' => $response->json('error_description'),
         ]);
+
         return null;
     }
 
@@ -66,6 +72,7 @@ class TeamsService
 
         if (! $userId) {
             Log::error('Teams User ID not configured');
+
             return null;
         }
 
@@ -88,6 +95,7 @@ class TeamsService
             'error' => $response->json('error'),
             'message' => $response->json('error.message'),
         ]);
+
         return null;
     }
 

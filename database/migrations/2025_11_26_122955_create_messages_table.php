@@ -18,7 +18,7 @@ return new class extends Migration
             $table->text('message');
             $table->boolean('is_read')->default(false);
             $table->timestamps();
-            
+
             $table->index(['sender_id', 'receiver_id']);
             $table->index('created_at');
         });

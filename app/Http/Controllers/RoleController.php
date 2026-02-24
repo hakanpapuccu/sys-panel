@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Role;
+use App\Http\Requests\StoreRoleRequest;
+use App\Http\Requests\UpdateRoleRequest;
 use App\Models\Permission;
-use Illuminate\Http\Request;
+use App\Models\Role;
+use App\Support\Audit;
 
 class RoleController extends Controller
 {
@@ -14,6 +16,7 @@ class RoleController extends Controller
     public function index()
     {
         $roles = Role::with('permissions')->get();
+
         return view('admin.roles.index', compact('roles'));
     }
 
@@ -23,29 +26,31 @@ class RoleController extends Controller
     public function create()
     {
         $permissions = Permission::all()->groupBy('module');
+
         return view('admin.roles.create', compact('permissions'));
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreRoleRequest $request)
     {
-        $request->validate([
-            'name' => 'required|unique:roles,name',
-            'label' => 'required',
-            'permissions' => 'array',
-            'permissions.*' => 'integer|exists:permissions,id',
-        ]);
+        $validated = $request->validated();
 
         $role = Role::create([
-            'name' => $request->name,
-            'label' => $request->label
+            'name' => $validated['name'],
+            'label' => $validated['label'],
         ]);
 
-        if ($request->has('permissions')) {
-            $role->permissions()->sync($request->permissions);
+        if (! empty($validated['permissions'])) {
+            $role->permissions()->sync($validated['permissions']);
         }
+
+        Audit::record('admin.role.created', $role, [], [
+            'name' => $role->name,
+            'label' => $role->label,
+            'permissions' => $role->permissions()->pluck('id')->all(),
+        ]);
 
         return redirect()->route('admin.roles.index')->with('success', 'Rol başarıyla oluşturuldu.');
     }
@@ -64,29 +69,38 @@ class RoleController extends Controller
     public function edit(Role $role)
     {
         $permissions = Permission::all()->groupBy('module');
+
         return view('admin.roles.edit', compact('role', 'permissions'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Role $role)
+    public function update(UpdateRoleRequest $request, Role $role)
     {
-        $request->validate([
-            'name' => 'required|unique:roles,name,' . $role->id,
-            'label' => 'required',
-            'permissions' => 'array',
-            'permissions.*' => 'integer|exists:permissions,id',
-        ]);
+        $validated = $request->validated();
+        $oldValues = [
+            'name' => $role->name,
+            'label' => $role->label,
+            'permissions' => $role->permissions()->pluck('id')->all(),
+        ];
 
         $role->update([
-            'name' => $request->name,
-            'label' => $request->label
+            'name' => $validated['name'],
+            'label' => $validated['label'],
         ]);
 
-        if ($request->has('permissions')) {
-            $role->permissions()->sync($request->permissions);
+        if (array_key_exists('permissions', $validated) && ! empty($validated['permissions'])) {
+            $role->permissions()->sync($validated['permissions']);
+        } else {
+            $role->permissions()->detach();
         }
+
+        Audit::record('admin.role.updated', $role, $oldValues, [
+            'name' => $role->name,
+            'label' => $role->label,
+            'permissions' => $role->permissions()->pluck('id')->all(),
+        ]);
 
         return redirect()->route('admin.roles.index')->with('success', 'Rol başarıyla güncellendi.');
     }
@@ -96,7 +110,14 @@ class RoleController extends Controller
      */
     public function destroy(Role $role)
     {
+        $oldValues = [
+            'name' => $role->name,
+            'label' => $role->label,
+            'permissions' => $role->permissions()->pluck('id')->all(),
+        ];
         $role->delete();
+        Audit::record('admin.role.deleted', null, $oldValues, ['deleted_role_id' => $role->id]);
+
         return redirect()->route('admin.roles.index')->with('success', 'Rol başarıyla silindi.');
     }
 }

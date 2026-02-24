@@ -2,23 +2,23 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreAnnouncementRequest;
+use App\Http\Requests\UpdateAnnouncementRequest;
 use App\Models\Announcement;
-use Illuminate\Http\Request;
+use App\Support\Audit;
 
 class AnnouncementController extends Controller
 {
     public function index()
     {
         $announcements = Announcement::with(['user', 'comments.user'])->latest()->get();
+
         return view('announcements.index', compact('announcements'));
     }
 
-    public function store(Request $request)
+    public function store(StoreAnnouncementRequest $request)
     {
-        $request->validate([
-            'content' => 'required|string|max:5000',
-        ]);
-
+        $this->authorize('create', Announcement::class);
         $content = $this->sanitizeContent($request->input('content'));
         if ($content === '' || mb_strlen($content) > 1000) {
             return back()
@@ -26,9 +26,13 @@ class AnnouncementController extends Controller
                 ->withInput();
         }
 
-        Announcement::create([
+        $announcement = Announcement::create([
             'user_id' => auth()->id(),
             'content' => $content,
+        ]);
+        Audit::record('announcement.created', $announcement, [], [
+            'user_id' => $announcement->user_id,
+            'content_length' => mb_strlen($announcement->content),
         ]);
 
         return back()->with('success', 'Duyuru paylaşıldı.');
@@ -36,21 +40,17 @@ class AnnouncementController extends Controller
 
     public function edit(Announcement $announcement)
     {
-        if ($announcement->user_id !== auth()->id() && !auth()->user()->is_admin) {
-            abort(403);
-        }
+        $this->authorize('update', $announcement);
+
         return view('announcements.edit', compact('announcement'));
     }
 
-    public function update(Request $request, Announcement $announcement)
+    public function update(UpdateAnnouncementRequest $request, Announcement $announcement)
     {
-        if ($announcement->user_id !== auth()->id() && !auth()->user()->is_admin) {
-            abort(403);
-        }
-
-        $request->validate([
-            'content' => 'required|string|max:5000',
-        ]);
+        $this->authorize('update', $announcement);
+        $oldValues = [
+            'content' => $announcement->content,
+        ];
 
         $content = $this->sanitizeContent($request->input('content'));
         if ($content === '' || mb_strlen($content) > 1000) {
@@ -62,17 +62,24 @@ class AnnouncementController extends Controller
         $announcement->update([
             'content' => $content,
         ]);
+        Audit::record('announcement.updated', $announcement, $oldValues, [
+            'content' => $announcement->content,
+        ]);
 
         return redirect()->route('announcements.index')->with('success', 'Duyuru güncellendi.');
     }
 
     public function destroy(Announcement $announcement)
     {
-        if ($announcement->user_id !== auth()->id() && !auth()->user()->is_admin) {
-            abort(403);
-        }
-
+        $this->authorize('delete', $announcement);
+        $oldValues = [
+            'content' => $announcement->content,
+            'user_id' => $announcement->user_id,
+        ];
         $announcement->delete();
+        Audit::record('announcement.deleted', null, $oldValues, [
+            'deleted_announcement_id' => $announcement->id,
+        ]);
 
         return back()->with('success', 'Duyuru silindi.');
     }

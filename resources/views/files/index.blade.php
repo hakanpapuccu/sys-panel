@@ -95,7 +95,7 @@
                                                         elseif(in_array(strtolower($ext), ['xls', 'xlsx'])) $icon = 'fa-file-excel';
                                                     @endphp
                                                     <i class="fa {{ $icon }} fa-lg me-3 text-primary"></i>
-                                                    <a href="javascript:void(0)" onclick='previewFile({{ \Illuminate\Support\Js::from(asset("storage/" . $file->file_path)) }}, {{ \Illuminate\Support\Js::from($file->file_name) }}, {{ \Illuminate\Support\Js::from($ext) }})' class="text-primary fw-bold">
+                                                    <a href="javascript:void(0)" onclick='previewFile({{ \Illuminate\Support\Js::from(route("files.preview", $file->id)) }}, {{ \Illuminate\Support\Js::from(route("files.download", $file->id)) }}, {{ \Illuminate\Support\Js::from($file->file_name) }}, {{ \Illuminate\Support\Js::from($ext) }})' class="text-primary fw-bold">
                                                         {{ $file->title }}
                                                     </a>
                                                 </div>
@@ -262,7 +262,7 @@
         modal.show();
     }
 
-    function previewFile(url, title, ext) {
+    function previewFile(previewUrl, downloadUrl, title, ext) {
         const modal = new bootstrap.Modal(document.getElementById('previewModal'));
         document.getElementById('previewTitle').textContent = title;
         const body = document.getElementById('previewBody');
@@ -270,14 +270,14 @@
 
         const lowerExt = ext.toLowerCase();
         if (['jpg', 'jpeg', 'png', 'gif'].includes(lowerExt)) {
-            body.innerHTML = `<img src="${url}" class="img-fluid" style="max-height: 80vh;">`;
+            body.innerHTML = `<img src="${previewUrl}" class="img-fluid" style="max-height: 80vh;">`;
         } else if (lowerExt === 'pdf') {
-            body.innerHTML = `<iframe src="${url}" style="width: 100%; height: 80vh;" frameborder="0"></iframe>`;
+            body.innerHTML = `<iframe src="${previewUrl}" style="width: 100%; height: 80vh;" frameborder="0"></iframe>`;
         } else {
             body.innerHTML = `<div class="p-5">
                                 <i class="fa fa-file fa-4x text-muted mb-3"></i>
                                 <p>Bu dosya türü için önizleme kullanılamıyor.</p>
-                                <a href="${url}" class="btn btn-primary" download>İndir</a>
+                                <a href="${downloadUrl}" class="btn btn-primary">İndir</a>
                               </div>`;
         }
 

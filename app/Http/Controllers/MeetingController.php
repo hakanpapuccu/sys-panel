@@ -4,12 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\Meeting;
 use App\Services\ZoomService;
-use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 
 class MeetingController extends Controller
 {
     protected $zoomService;
+
     protected $teamsService;
 
     public function __construct(ZoomService $zoomService, \App\Services\TeamsService $teamsService)
@@ -23,12 +24,14 @@ class MeetingController extends Controller
         $meetings = Meeting::where('start_time', '>=', now())
             ->orderBy('start_time', 'asc')
             ->paginate(10);
+
         return view('meetings.index', compact('meetings'));
     }
 
     public function adminIndex()
     {
         $meetings = Meeting::orderBy('start_time', 'desc')->paginate(10);
+
         return view('admin.meetings.index', compact('meetings'));
     }
 
@@ -48,7 +51,7 @@ class MeetingController extends Controller
         ]);
 
         $startTime = Carbon::parse($request->start_time);
-        
+
         $meetingData = [
             'topic' => $request->topic,
             'start_time' => $startTime->toIso8601String(),
@@ -90,13 +93,14 @@ class MeetingController extends Controller
             return redirect()->route('admin.meetings.index')->with('success', 'Toplantı başarıyla oluşturuldu.');
         }
 
-        return back()->with('error', ucfirst($platform) . ' toplantısı oluşturulamadı. Lütfen API ayarlarını kontrol edin.');
+        return back()->with('error', ucfirst($platform).' toplantısı oluşturulamadı. Lütfen API ayarlarını kontrol edin.');
     }
 
     public function destroy(Meeting $meeting)
     {
         // Optionally delete from Zoom as well
         $meeting->delete();
+
         return redirect()->route('admin.meetings.index')->with('success', 'Toplantı silindi.');
     }
 

@@ -3,8 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Poll;
-use App\Models\PollQuestion;
-use App\Models\PollOption;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -16,6 +14,7 @@ class PollController extends Controller
     public function index()
     {
         $polls = Poll::withCount('responses')->orderBy('created_at', 'desc')->paginate(10);
+
         return view('admin.polls.index', compact('polls'));
     }
 
@@ -60,9 +59,9 @@ class PollController extends Controller
                     'order' => $index,
                 ]);
 
-                if (in_array($qData['type'], ['radio', 'checkbox']) && !empty($qData['options'])) {
+                if (in_array($qData['type'], ['radio', 'checkbox']) && ! empty($qData['options'])) {
                     foreach ($qData['options'] as $optionText) {
-                        if (!empty($optionText)) {
+                        if (! empty($optionText)) {
                             $question->options()->create(['option_text' => $optionText]);
                         }
                     }
@@ -79,7 +78,7 @@ class PollController extends Controller
     public function show(Poll $poll)
     {
         $poll->load(['questions.options', 'responses.answers']);
-        
+
         // Calculate stats
         $stats = [];
         foreach ($poll->questions as $question) {
@@ -105,6 +104,7 @@ class PollController extends Controller
     public function edit(Poll $poll)
     {
         $poll->load('questions.options');
+
         return view('admin.polls.edit', compact('poll'));
     }
 
@@ -117,7 +117,7 @@ class PollController extends Controller
         // Updating existing questions structure when responses exist is complex.
         // Here we'll allow full update but warn that it might affect data if implemented fully.
         // For now, let's just update basic info.
-        
+
         $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -142,6 +142,7 @@ class PollController extends Controller
     public function destroy(Poll $poll)
     {
         $poll->delete();
+
         return redirect()->route('admin.polls.index')->with('success', 'Anket silindi.');
     }
 }

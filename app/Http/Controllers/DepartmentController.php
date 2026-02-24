@@ -13,6 +13,7 @@ class DepartmentController extends Controller
     public function index()
     {
         $departments = Department::withCount('users')->get();
+
         return view('admin.departments.index', compact('departments'));
     }
 
@@ -37,6 +38,7 @@ class DepartmentController extends Controller
         Department::create($validated);
 
         session()->flash('success', 'Departman başarıyla oluşturuldu.');
+
         return redirect()->route('admin.departments.index');
     }
 
@@ -62,13 +64,14 @@ class DepartmentController extends Controller
     public function update(Request $request, Department $department)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:departments,name,' . $department->id,
+            'name' => 'required|string|max:255|unique:departments,name,'.$department->id,
             'description' => 'nullable|string',
         ]);
 
         $department->update($validated);
 
         session()->flash('success', 'Departman başarıyla güncellendi.');
+
         return redirect()->route('admin.departments.index');
     }
 
@@ -79,12 +82,14 @@ class DepartmentController extends Controller
     {
         if ($department->users()->count() > 0) {
             session()->flash('error', 'Bu departmana bağlı kullanıcılar var. Önce kullanıcıları taşıyın veya silin.');
+
             return back();
         }
 
         $department->delete();
 
         session()->flash('success', 'Departman silindi.');
+
         return redirect()->route('admin.departments.index');
     }
 }

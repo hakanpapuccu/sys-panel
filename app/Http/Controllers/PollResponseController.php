@@ -38,6 +38,7 @@ class PollResponseController extends Controller
         }
 
         $poll->load('questions.options');
+
         return view('polls.show', compact('poll'));
     }
 

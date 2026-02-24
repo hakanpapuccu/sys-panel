@@ -2,17 +2,16 @@
 
 namespace App\Notifications;
 
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
-use Illuminate\Notifications\Notification;
 use App\Models\Vacation;
+use Illuminate\Bus\Queueable;
+use Illuminate\Notifications\Notification;
 
 class VacationStatusUpdated extends Notification
 {
     use Queueable;
 
     public $vacation;
+
     public $status;
 
     /**
@@ -41,8 +40,8 @@ class VacationStatusUpdated extends Notification
      */
     public function toArray(object $notifiable): array
     {
-        $message = $this->status === 'approved' 
-            ? 'İzin talebiniz onaylandı.' 
+        $message = $this->status === 'approved'
+            ? 'İzin talebiniz onaylandı.'
             : 'İzin talebiniz reddedildi.';
 
         return [

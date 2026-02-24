@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
+use App\Http\Requests\StoreAdminUserRequest;
+use App\Http\Requests\UpdateAdminUserRequest;
 use App\Models\Department;
-use Illuminate\Http\Request;
+use App\Models\User;
+use App\Support\Audit;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rules;
 
 class AdminUserController extends Controller
 {
@@ -16,6 +17,7 @@ class AdminUserController extends Controller
     public function index()
     {
         $users = User::paginate(10);
+
         return view('admin.users.index', compact('users'));
     }
 
@@ -29,34 +31,36 @@ class AdminUserController extends Controller
     {
         $departments = Department::all();
         $roles = \App\Models\Role::all();
+
         return view('admin.users.create', compact('departments', 'roles'));
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreAdminUserRequest $request)
     {
-        $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:'.User::class],
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'department_id' => ['nullable', 'exists:departments,id'],
-            'roles' => ['array'],
-            'roles.*' => ['integer', 'exists:roles,id'],
-        ]);
+        $validated = $request->validated();
 
         $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'is_admin' => $request->has('is_admin'),
-            'department_id' => $request->department_id,
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'password' => Hash::make($validated['password']),
+            'is_admin' => $request->boolean('is_admin'),
+            'department_id' => $validated['department_id'] ?? null,
         ]);
 
-        if ($request->has('roles')) {
-            $user->roles()->sync($request->roles);
+        if (! empty($validated['roles'])) {
+            $user->roles()->sync($validated['roles']);
         }
+
+        Audit::record('admin.user.created', $user, [], [
+            'name' => $user->name,
+            'email' => $user->email,
+            'is_admin' => (bool) $user->is_admin,
+            'department_id' => $user->department_id,
+            'roles' => $user->roles()->pluck('id')->all(),
+        ]);
 
         return redirect()->route('admin.users.index')->with('success', 'User created successfully.');
     }
@@ -68,42 +72,48 @@ class AdminUserController extends Controller
     {
         $departments = Department::all();
         $roles = \App\Models\Role::all();
+
         return view('admin.users.edit', compact('user', 'departments', 'roles'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, User $user)
+    public function update(UpdateAdminUserRequest $request, User $user)
     {
-        $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,'.$user->id],
-            'is_admin' => ['boolean'],
-            'department_id' => ['nullable', 'exists:departments,id'],
-            'roles' => ['array'],
-            'roles.*' => ['integer', 'exists:roles,id'],
-        ]);
+        $validated = $request->validated();
+        $oldValues = [
+            'name' => $user->name,
+            'email' => $user->email,
+            'is_admin' => (bool) $user->is_admin,
+            'department_id' => $user->department_id,
+            'roles' => $user->roles()->pluck('id')->all(),
+        ];
 
-        $user->name = $request->name;
-        $user->email = $request->email;
-        $user->is_admin = $request->has('is_admin');
-        $user->department_id = $request->department_id;
+        $user->name = $validated['name'];
+        $user->email = $validated['email'];
+        $user->is_admin = $request->boolean('is_admin');
+        $user->department_id = $validated['department_id'] ?? null;
 
-        if ($request->filled('password')) {
-            $request->validate([
-                'password' => ['confirmed', Rules\Password::defaults()],
-            ]);
-            $user->password = Hash::make($request->password);
+        if (! empty($validated['password'])) {
+            $user->password = Hash::make($validated['password']);
         }
 
         $user->save();
 
-        if ($request->has('roles')) {
-            $user->roles()->sync($request->roles);
+        if (array_key_exists('roles', $validated) && ! empty($validated['roles'])) {
+            $user->roles()->sync($validated['roles']);
         } else {
             $user->roles()->detach();
         }
+
+        Audit::record('admin.user.updated', $user, $oldValues, [
+            'name' => $user->name,
+            'email' => $user->email,
+            'is_admin' => (bool) $user->is_admin,
+            'department_id' => $user->department_id,
+            'roles' => $user->roles()->pluck('id')->all(),
+        ]);
 
         return redirect()->route('admin.users.index')->with('success', 'User updated successfully.');
     }
@@ -116,8 +126,16 @@ class AdminUserController extends Controller
         if ($user->id === auth()->id()) {
             return back()->with('error', 'You cannot delete yourself.');
         }
-        
+
+        $oldValues = [
+            'name' => $user->name,
+            'email' => $user->email,
+            'is_admin' => (bool) $user->is_admin,
+            'department_id' => $user->department_id,
+            'roles' => $user->roles()->pluck('id')->all(),
+        ];
         $user->delete();
+        Audit::record('admin.user.deleted', null, $oldValues, ['deleted_user_id' => $user->id]);
 
         return redirect()->route('admin.users.index')->with('success', 'User deleted successfully.');
     }

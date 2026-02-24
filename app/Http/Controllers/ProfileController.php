@@ -36,7 +36,7 @@ class ProfileController extends Controller
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
         $data = $request->validated();
-        
+
         // Check if we're editing another user (admin only)
         $userId = $request->input('user_id');
         if ($userId && $request->user()->is_admin) {
@@ -45,10 +45,10 @@ class ProfileController extends Controller
             $user = $request->user();
         }
 
-        // Note: Image upload is now handled by uploadImage method, 
+        // Note: Image upload is now handled by uploadImage method,
         // but we keep this logic here if we want to support it in the main form too,
         // or we can remove it. For now, I'll leave it but the main form won't send these fields.
-        
+
         // Handle is_admin field (only if admin is editing another user)
         if ($request->user()->is_admin && $userId) {
             $user->is_admin = $request->has('is_admin');
@@ -56,7 +56,7 @@ class ProfileController extends Controller
 
         // Remove is_admin from data before filling to avoid mass assignment issues
         unset($data['is_admin'], $data['user_id']);
-        
+
         $user->fill($data);
 
         if ($user->isDirty('email')) {

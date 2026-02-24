@@ -3,8 +3,6 @@
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 class MessageReceived extends Notification
@@ -39,7 +37,7 @@ class MessageReceived extends Notification
     public function toArray(object $notifiable): array
     {
         return [
-            'message' => 'Yeni mesaj: ' . $this->message->sender->name,
+            'message' => 'Yeni mesaj: '.$this->message->sender->name,
             'url' => route('chat.index'),
             'sender_id' => $this->message->sender_id,
             'message_id' => $this->message->id,

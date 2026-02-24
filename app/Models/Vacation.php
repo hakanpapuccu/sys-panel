@@ -11,7 +11,9 @@ class Vacation extends Model
 
     // Status Constants
     const STATUS_APPROVED = 1;
+
     const STATUS_PENDING = 2;
+
     const STATUS_REJECTED = 3;
 
     protected $fillable = [
@@ -31,20 +33,24 @@ class Vacation extends Model
         'is_verified' => 'integer',
     ];
 
-    public function user() {
+    public function user()
+    {
         return $this->belongsTo(User::class, 'vacation_user_id');
     }
 
-    public function verifier() {
+    public function verifier()
+    {
         return $this->belongsTo(User::class, 'vacation_verifier_id');
     }
 
     // Deprecated methods for backward compatibility (will remove later)
-    public function getUser() {
+    public function getUser()
+    {
         return $this->user();
     }
 
-    public function getVerifier() {
+    public function getVerifier()
+    {
         return $this->verifier();
     }
 }

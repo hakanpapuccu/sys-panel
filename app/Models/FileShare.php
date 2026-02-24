@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class FileShare extends Model
@@ -15,6 +14,7 @@ class FileShare extends Model
         'title',
         'description',
         'file_path',
+        'storage_disk',
         'file_name',
     ];
 
