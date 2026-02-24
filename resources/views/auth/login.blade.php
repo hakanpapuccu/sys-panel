@@ -56,11 +56,23 @@
 										</a>
 									</div>
                                     <h4 class="text-center mb-4">GİRİŞ YAP</h4>
+                                    @if (session('status'))
+                                        <div class="alert alert-success">
+                                            {{ session('status') }}
+                                        </div>
+                                    @endif
+
+                                    @if ($errors->any())
+                                        <div class="alert alert-danger">
+                                            {{ $errors->first() }}
+                                        </div>
+                                    @endif
+
                                     <form action="{{route('login')}}" method="POST">
                                         @csrf
                                         <div class="mb-3">
                                             <label class="mb-1"><strong>E-Posta</strong></label>
-                                            <input id="email" type="email" name="email" class="form-control" placeholder="hello@example.com" required autofocus>
+                                            <input id="email" type="email" name="email" value="{{ old('email') }}" class="form-control" placeholder="hello@example.com" required autofocus>
                                         </div>
                                         <div class="mb-3">
                                             <label class="mb-1"><strong>Parola</strong></label>

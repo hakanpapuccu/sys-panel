@@ -14,6 +14,7 @@ use App\Http\Controllers\PollResponseController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReportsController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\SecurityController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\VacationsController;
@@ -76,6 +77,12 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::post('/profile/upload-image', [ProfileController::class, 'uploadImage'])->name('profile.upload-image');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::post('/profile/security/two-factor/setup', [SecurityController::class, 'setupTwoFactor'])->name('security.two-factor.setup');
+    Route::post('/profile/security/two-factor/confirm', [SecurityController::class, 'confirmTwoFactor'])->name('security.two-factor.confirm');
+    Route::delete('/profile/security/two-factor', [SecurityController::class, 'disableTwoFactor'])->name('security.two-factor.disable');
+    Route::post('/profile/security/two-factor/recovery-codes', [SecurityController::class, 'regenerateRecoveryCodes'])->name('security.two-factor.recovery-codes');
+    Route::post('/profile/security/sessions/revoke-others', [SecurityController::class, 'revokeOtherSessions'])->name('security.sessions.revoke-others');
+    Route::post('/profile/security/sessions/{session}/revoke', [SecurityController::class, 'revokeSession'])->name('security.sessions.revoke');
 
     // Announcements
     Route::get('/announcements', [AnnouncementController::class, 'index'])->middleware('permission:view_announcements')->name('announcements.index');

@@ -200,6 +200,212 @@
                                     </div>
                                     <button class="btn btn-primary" type="submit">Şifreyi Güncelle</button>
                                 </form>
+
+                                @if($showSecurityPanel)
+                                <h4 class="text-primary mt-4">Güvenlik</h4>
+
+                                @if(session('security_message'))
+                                    <div class="alert alert-success">
+                                        {{ session('security_message') }}
+                                    </div>
+                                @endif
+
+                                @if(session('two_factor.recovery_codes_plain'))
+                                    <div class="alert alert-warning">
+                                        <strong>Kurtarma kodları (yalnızca bir kez gösterilir):</strong>
+                                        <ul class="mb-0 mt-2">
+                                            @foreach(session('two_factor.recovery_codes_plain', []) as $recoveryCode)
+                                                <li><code>{{ $recoveryCode }}</code></li>
+                                            @endforeach
+                                        </ul>
+                                    </div>
+                                @endif
+
+                                <div class="card mt-3">
+                                    <div class="card-body">
+                                        <h5 class="card-title">İki Adımlı Doğrulama (2FA)</h5>
+                                        <p class="text-muted">
+                                            Durum:
+                                            @if($user->hasTwoFactorEnabled())
+                                                <span class="badge badge-success">Aktif</span>
+                                            @else
+                                                <span class="badge badge-secondary">Pasif</span>
+                                            @endif
+                                        </p>
+                                        @if($user->hasTwoFactorEnabled())
+                                            <p class="mb-2">Kalan kurtarma kodu: <strong>{{ $user->recoveryCodesCount() }}</strong></p>
+                                        @endif
+
+                                        @if(!$user->hasTwoFactorEnabled())
+                                            @if($pendingTwoFactorSecret)
+                                                <div class="alert alert-info">
+                                                    <p class="mb-2"><strong>Kurulum Anahtarı:</strong> <code>{{ $pendingTwoFactorSecret }}</code></p>
+                                                    <p class="mb-0"><strong>OTP URI:</strong> <code>{{ $pendingTwoFactorOtpAuthUrl }}</code></p>
+                                                </div>
+                                                <form method="POST" action="{{ route('security.two-factor.confirm') }}" class="row g-2">
+                                                    @csrf
+                                                    <div class="col-md-8">
+                                                        <input type="text" name="code" class="form-control" placeholder="Uygulamadaki 6 haneli kod" required>
+                                                        @error('code')
+                                                            <div class="text-danger">{{ $message }}</div>
+                                                        @enderror
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <button class="btn btn-success w-100" type="submit">2FA Aktifleştir</button>
+                                                    </div>
+                                                </form>
+                                            @else
+                                                <form method="POST" action="{{ route('security.two-factor.setup') }}" class="row g-2">
+                                                    @csrf
+                                                    <div class="col-md-8">
+                                                        <input type="password" name="current_password" class="form-control" placeholder="Mevcut şifre" required autocomplete="current-password">
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <button class="btn btn-primary w-100" type="submit">Kurulumu Başlat</button>
+                                                    </div>
+                                                </form>
+                                            @endif
+                                        @else
+                                            <div class="row g-2">
+                                                <div class="col-md-6">
+                                                    <form method="POST" action="{{ route('security.two-factor.recovery-codes') }}">
+                                                        @csrf
+                                                        <div class="input-group">
+                                                            <input type="password" name="current_password" class="form-control" placeholder="Mevcut şifre" required autocomplete="current-password">
+                                                            <button class="btn btn-warning" type="submit">Kurtarma Kodlarını Yenile</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <form method="POST" action="{{ route('security.two-factor.disable') }}">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <div class="input-group">
+                                                            <input type="password" name="current_password" class="form-control" placeholder="Mevcut şifre" required autocomplete="current-password">
+                                                            <button class="btn btn-danger" type="submit">2FA Kapat</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        @endif
+                                    </div>
+                                </div>
+
+                                <div class="card mt-3">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <h5 class="card-title mb-0">Aktif Oturumlar</h5>
+                                            <form method="POST" action="{{ route('security.sessions.revoke-others') }}" class="d-flex gap-2">
+                                                @csrf
+                                                <input type="password" name="current_password" class="form-control form-control-sm" placeholder="Mevcut şifre" required autocomplete="current-password">
+                                                <button class="btn btn-outline-danger btn-sm" type="submit">Diğerlerini Sonlandır</button>
+                                            </form>
+                                        </div>
+                                        <div class="table-responsive mt-3">
+                                            <table class="table table-responsive-md">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Cihaz</th>
+                                                        <th>IP</th>
+                                                        <th>Giriş</th>
+                                                        <th>Son Aktivite</th>
+                                                        <th>İşlem</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @forelse($activeSessions as $activeSession)
+                                                        <tr>
+                                                            <td>
+                                                                {{ $activeSession->device_label }}
+                                                                @if($activeSession->session_id === $currentSessionId)
+                                                                    <span class="badge badge-success ms-2">Bu Cihaz</span>
+                                                                @endif
+                                                            </td>
+                                                            <td>{{ $activeSession->ip_address ?? '-' }}</td>
+                                                            <td>{{ optional($activeSession->login_at)->format('d.m.Y H:i') ?? '-' }}</td>
+                                                            <td>{{ optional($activeSession->last_activity_at)->diffForHumans() ?? '-' }}</td>
+                                                            <td>
+                                                                <form method="POST" action="{{ route('security.sessions.revoke', $activeSession->id) }}">
+                                                                    @csrf
+                                                                    <button class="btn btn-outline-danger btn-xs" type="submit">
+                                                                        {{ $activeSession->session_id === $currentSessionId ? 'Bu Oturumu Kapat' : 'Sonlandır' }}
+                                                                    </button>
+                                                                </form>
+                                                            </td>
+                                                        </tr>
+                                                    @empty
+                                                        <tr>
+                                                            <td colspan="5" class="text-muted">Aktif oturum bulunamadı.</td>
+                                                        </tr>
+                                                    @endforelse
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="card mt-3">
+                                    <div class="card-body">
+                                        <h5 class="card-title">IP / Cihaz Geçmişi</h5>
+                                        <div class="table-responsive">
+                                            <table class="table table-responsive-md">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Olay</th>
+                                                        <th>Cihaz</th>
+                                                        <th>IP</th>
+                                                        <th>Zaman</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @forelse($securityEvents as $event)
+                                                        <tr>
+                                                            <td><code>{{ $event->event }}</code></td>
+                                                            <td>{{ $event->device_label }}</td>
+                                                            <td>{{ $event->ip_address ?? '-' }}</td>
+                                                            <td>{{ $event->created_at->format('d.m.Y H:i:s') }}</td>
+                                                        </tr>
+                                                    @empty
+                                                        <tr>
+                                                            <td colspan="4" class="text-muted">Güvenlik geçmişi bulunamadı.</td>
+                                                        </tr>
+                                                    @endforelse
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="card mt-3">
+                                    <div class="card-body">
+                                        <h5 class="card-title">Kritik İşlem Logları</h5>
+                                        <div class="table-responsive">
+                                            <table class="table table-responsive-md">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Event</th>
+                                                        <th>IP</th>
+                                                        <th>Zaman</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @forelse($criticalAuditLogs as $log)
+                                                        <tr>
+                                                            <td><code>{{ $log->event }}</code></td>
+                                                            <td>{{ $log->ip_address ?? '-' }}</td>
+                                                            <td>{{ $log->created_at->format('d.m.Y H:i:s') }}</td>
+                                                        </tr>
+                                                    @empty
+                                                        <tr>
+                                                            <td colspan="3" class="text-muted">Kritik log kaydı bulunamadı.</td>
+                                                        </tr>
+                                                    @endforelse
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                                @endif
                             </div>
                         </div>
                     </div>

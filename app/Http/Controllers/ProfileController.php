@@ -3,11 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Models\AuditLog;
+use App\Models\SecurityEvent;
+use App\Models\UserSession;
+use App\Support\TwoFactorService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\View\View;
+use Throwable;
 
 class ProfileController extends Controller
 {
@@ -24,9 +29,73 @@ class ProfileController extends Controller
             $user = $request->user();
         }
 
+        $isEditingOtherUser = $userId !== null && $request->user()->id !== $user->id;
+        $showSecurityPanel = ! $isEditingOtherUser;
+
+        $activeSessions = collect();
+        $securityEvents = collect();
+        $criticalAuditLogs = collect();
+        $currentSessionId = null;
+        $pendingTwoFactorSecret = null;
+        $pendingTwoFactorOtpAuthUrl = null;
+
+        if ($showSecurityPanel) {
+            try {
+                $currentUser = $request->user();
+                $currentSessionId = $request->session()->getId();
+
+                $activeSessions = UserSession::query()
+                    ->where('user_id', $currentUser->id)
+                    ->active()
+                    ->orderByDesc('last_activity_at')
+                    ->limit(20)
+                    ->get();
+
+                $securityEvents = SecurityEvent::query()
+                    ->where(function ($query) use ($currentUser) {
+                        $query->where('user_id', $currentUser->id)
+                            ->orWhere(function ($innerQuery) use ($currentUser) {
+                                $innerQuery->whereNull('user_id')
+                                    ->where('context->email', $currentUser->email);
+                            });
+                    })
+                    ->orderByDesc('created_at')
+                    ->limit(30)
+                    ->get();
+
+                $criticalAuditLogs = AuditLog::query()
+                    ->where('user_id', $currentUser->id)
+                    ->where(function ($query) {
+                        $query->where('event', 'like', 'auth.%')
+                            ->orWhere('event', 'like', 'security.%');
+                    })
+                    ->latest()
+                    ->limit(30)
+                    ->get();
+
+                $pendingTwoFactorSecret = (string) $request->session()->get('two_factor.setup_secret', '');
+                if ($pendingTwoFactorSecret !== '') {
+                    $pendingTwoFactorOtpAuthUrl = app(TwoFactorService::class)
+                        ->otpAuthUrl($currentUser, $pendingTwoFactorSecret);
+                }
+            } catch (Throwable) {
+                $activeSessions = collect();
+                $securityEvents = collect();
+                $criticalAuditLogs = collect();
+                $currentSessionId = $request->session()->getId();
+            }
+        }
+
         return view('profile.edit', [
             'user' => $user,
-            'isEditingOtherUser' => $userId !== null && $request->user()->id !== $user->id,
+            'isEditingOtherUser' => $isEditingOtherUser,
+            'showSecurityPanel' => $showSecurityPanel,
+            'activeSessions' => $activeSessions,
+            'securityEvents' => $securityEvents,
+            'criticalAuditLogs' => $criticalAuditLogs,
+            'currentSessionId' => $currentSessionId,
+            'pendingTwoFactorSecret' => $pendingTwoFactorSecret,
+            'pendingTwoFactorOtpAuthUrl' => $pendingTwoFactorOtpAuthUrl,
         ]);
     }
 
