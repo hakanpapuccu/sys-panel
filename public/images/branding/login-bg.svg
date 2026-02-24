@@ -1,0 +1,38 @@
+<svg width="1920" height="1080" viewBox="0 0 1920 1080" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg_main" x1="160" y1="40" x2="1680" y2="1040" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0E3A4C"/>
+      <stop offset="0.5" stop-color="#11607A"/>
+      <stop offset="1" stop-color="#1B8C97"/>
+    </linearGradient>
+    <radialGradient id="glow_top" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1480 180) rotate(146) scale(560 440)">
+      <stop stop-color="#8BE5D8" stop-opacity="0.5"/>
+      <stop offset="1" stop-color="#8BE5D8" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glow_bottom" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(300 980) rotate(-31) scale(620 500)">
+      <stop stop-color="#C8F9F2" stop-opacity="0.32"/>
+      <stop offset="1" stop-color="#C8F9F2" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="bg_grid" width="70" height="70" patternUnits="userSpaceOnUse">
+      <path d="M70 0H0V70" stroke="#D2FFFF" stroke-opacity="0.12" stroke-width="1"/>
+    </pattern>
+  </defs>
+
+  <rect width="1920" height="1080" fill="url(#bg_main)"/>
+  <rect width="1920" height="1080" fill="url(#bg_grid)"/>
+  <ellipse cx="1480" cy="180" rx="560" ry="440" fill="url(#glow_top)"/>
+  <ellipse cx="300" cy="980" rx="620" ry="500" fill="url(#glow_bottom)"/>
+
+  <g opacity="0.46">
+    <path d="M1320 90L1820 90L1820 540" stroke="#BDF8F4" stroke-width="2"/>
+    <path d="M1080 260L1760 260L1760 760" stroke="#A7F1EB" stroke-width="2"/>
+    <path d="M860 460L1620 460L1620 980" stroke="#8CE5DD" stroke-width="2"/>
+  </g>
+
+  <g opacity="0.8">
+    <circle cx="1390" cy="210" r="8" fill="#F1FFFE"/>
+    <circle cx="1650" cy="320" r="6" fill="#D0FFF9"/>
+    <circle cx="1510" cy="610" r="7" fill="#E2FFFB"/>
+    <circle cx="1210" cy="830" r="5" fill="#D5FFF9"/>
+  </g>
+</svg>

@@ -17,7 +17,11 @@
 		<!-- PAGE TITLE HERE -->
 		<title>{{ $site_title }}</title>
 		<!-- FAVICONS ICON -->
-		<link rel="shortcut icon" type="image/png" href="{{ $site_favicon ? asset('storage/' . $site_favicon) : asset('images/logo.png') }}" />
+		@if($site_favicon)
+		<link rel="shortcut icon" type="image/png" href="{{ asset('storage/' . $site_favicon) }}" />
+		@else
+		<link rel="icon" type="image/svg+xml" href="{{ asset('images/branding/sys-panel-favicon.svg') }}" />
+		@endif
 
 		@if(request()->routeIs('vacations', 'tasks.index'))
 		<link href="{{ asset('vendor/datatables/css/jquery.dataTables.min.css') }}" rel="stylesheet">
@@ -60,7 +64,7 @@
 	        ***********************************-->
 	       <div class="nav-header">
 	            <a href="{{ route('dashboard') }}" class="brand-logo">
-					<img src="{{ $site_logo ? asset('storage/' . $site_logo) : asset('images/logo.png') }}" alt="logo" width="75">
+					<img src="{{ $site_logo ? asset('storage/' . $site_logo) : asset('images/branding/sys-panel-mark.svg') }}" alt="{{ $site_title }} logo" width="58" height="58">
 					<div class="brand-title">
 						<h3 class="">{{ $site_title }}</h3>
 					<span class="brand-sub-title">{{ auth()->user()->is_admin ? 'Yönetici' : 'Personel' }}</span>

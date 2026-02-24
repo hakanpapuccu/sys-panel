@@ -1,0 +1,19 @@
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="mark_bg" x1="12" y1="8" x2="120" y2="120" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0A617A"/>
+      <stop offset="1" stop-color="#1FA0A5"/>
+    </linearGradient>
+    <linearGradient id="mark_ring" x1="32" y1="24" x2="96" y2="104" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF" stop-opacity="0.95"/>
+      <stop offset="1" stop-color="#D9F6F7" stop-opacity="0.78"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="8" y="8" width="112" height="112" rx="28" fill="url(#mark_bg)"/>
+  <circle cx="98" cy="30" r="12" fill="#74D8D2" fill-opacity="0.45"/>
+  <circle cx="30" cy="102" r="10" fill="#FFFFFF" fill-opacity="0.24"/>
+
+  <path d="M36 44.5C36 36.5 42.5 30 50.5 30H77.5C83.3 30 88 34.7 88 40.5V44.5C88 50.3 83.3 55 77.5 55H52.5V61H75C82.7 61 89 67.3 89 75V77.5C89 86.1 82.1 93 73.5 93H36V79H70C72.2 79 74 77.2 74 75C74 72.8 72.2 71 70 71H50.5C42.5 71 36 64.5 36 56.5V44.5Z" fill="url(#mark_ring)"/>
+  <path d="M51 30H63V93H51V30Z" fill="#E9FCFD"/>
+</svg>
